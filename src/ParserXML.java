@@ -1,15 +1,16 @@
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Scanner;
 
 /** Assumes UTF-8 encoding. JDK 7+. */
-public class parserXML {
-
+public class ParserXML {
+    private final static Charset ENCODING = StandardCharsets.UTF_8;
+    private String chaine;
+    private String nom_param;
+    private String val_param;
     public static void main(String... aArgs) throws IOException {
-        parserXML parser = new parserXML("<parameters>\n" +
+        ParserXML parser = new ParserXML("<parameters>\n" +
                 "<parameter name=\"1.21\" value=\"55\" dp=\"1\" text=\"5.5Hz\" />\n" +
                 "<parameter name=\"1.24\" value=\"0\" dp=\"1\" text=\"0.0Hz\" />\n" +
                 "</parameters>");
@@ -20,7 +21,7 @@ public class parserXML {
     /**
      Constructor.
      */
-    public parserXML(String chaineXML){chaine=chaineXML;}
+    public ParserXML(String chaineXML){chaine=chaineXML;}
 
 
     /** Template method that calls {@link #processLine(String)}.  */
@@ -40,9 +41,9 @@ public class parserXML {
             scanner.useDelimiter("\"");
             if (scanner.hasNext()) {
                 scanner.next();
-                String nom_param = scanner.next();
+                nom_param = scanner.next();
                 scanner.next();
-                String val_param = scanner.next();
+                val_param = scanner.next();
             } else {
                 log("Empty or invalid line. Unable to process.");
             }
@@ -50,14 +51,20 @@ public class parserXML {
     }
 
     // PRIVATE
-    private final static Charset ENCODING = StandardCharsets.UTF_8;
-    private String chaine;
+
     private static void log(Object aObject){
         System.out.println(String.valueOf(aObject));
     }
-
     private String quote(String aText){
         String QUOTE = "'";
         return QUOTE + aText + QUOTE;
+    }
+
+    public String getNom_param() {
+        return nom_param;
+    }
+
+    public String getVal_param() {
+        return val_param;
     }
 }
