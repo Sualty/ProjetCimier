@@ -9,23 +9,23 @@ import java.util.Scanner;
 public class parserXML {
 
     public static void main(String... aArgs) throws IOException {
-        parserXML parser = new parserXML("C:\\Users\\Gunsillie\\Documents\\Random Algo\\ProjetCimier\\test.txt");
+        parserXML parser = new parserXML("<parameters>\n" +
+                "<parameter name=\"1.21\" value=\"55\" dp=\"1\" text=\"5.5Hz\" />\n" +
+                "<parameter name=\"1.24\" value=\"0\" dp=\"1\" text=\"0.0Hz\" />\n" +
+                "</parameters>");
         parser.processLineByLine();
         log("Done.");
     }
 
     /**
      Constructor.
-     @param aFileName full name of an existing, readable file.
      */
-    public parserXML(String aFileName){
-        fFilePath = Paths.get(aFileName);
-    }
+    public parserXML(String chaineXML){chaine=chaineXML;}
 
 
     /** Template method that calls {@link #processLine(String)}.  */
     public final void processLineByLine() throws IOException {
-        try (Scanner scanner =  new Scanner(fFilePath, ENCODING.name())){
+        try (Scanner scanner =  new Scanner(chaine)){
             while (scanner.hasNextLine()){
                 processLine(scanner.nextLine());
             }
@@ -50,9 +50,8 @@ public class parserXML {
     }
 
     // PRIVATE
-    private final Path fFilePath;
     private final static Charset ENCODING = StandardCharsets.UTF_8;
-
+    private String chaine;
     private static void log(Object aObject){
         System.out.println(String.valueOf(aObject));
     }
