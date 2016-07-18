@@ -80,4 +80,8 @@ public class GetDataFromUnidrive {
     public double parseCurrent(String current) {
         return Double.parseDouble(current.substring(0,current.length()-1));
     }
+
+    public List<Double> getListCurrent() {
+        return this.currentValues;
+    }
 }
