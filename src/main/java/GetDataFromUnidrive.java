@@ -2,6 +2,7 @@ import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.*;
 
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -9,13 +10,14 @@ import java.util.List;
  */
 public class GetDataFromUnidrive {
 
+    private List<Double> currentValues;
     /**
      * Constructor
      * @param addr the URI request
      * @throws URISyntaxException
      */
     public GetDataFromUnidrive(String addr) throws URISyntaxException {
-
+        this.currentValues = new ArrayList<>();
     }
 
     /**
@@ -55,7 +57,8 @@ public class GetDataFromUnidrive {
                 for (int i=0;i<=5;i++) {
                     page_final = webClient.getPage("http://192.168.130.182/US/4/parameters/menu.htm");
                     HtmlElement active_current = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[7]/td[2]");
-                    System.out.println("LE COURANT EST "+active_current.getTextContent());
+                    //System.out.println("LE COURANT EST "+active_current.getTextContent());
+                    this.currentValues.add(parseCurrent(active_current.getTextContent()));
                     Thread.sleep(1000);
                 }
             } catch (InterruptedException e) {
@@ -64,9 +67,17 @@ public class GetDataFromUnidrive {
                 System.out.println(page_out.getTitleText());
             }
 
+            for(int i=0;i<this.currentValues.size();i++) {
+                System.out.println(currentValues.get(i));
+            }
+
             final HtmlElement button_logout = (HtmlElement)page_final.getElementById("mainnav7");
             HtmlPage page_out = button_logout.click();
             System.out.println(page_out.getTitleText());
         }
+    }
+
+    public double parseCurrent(String current) {
+        return Double.parseDouble(current.substring(0,current.length()-1));
     }
 }
