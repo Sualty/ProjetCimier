@@ -1,11 +1,8 @@
-import java.io.IOException;
-import java.net.URISyntaxException;
-
 public class Main {
 
-    public static void main(String[] args) throws URISyntaxException, IOException {
+    public static void main(String[] args) throws Exception {
         GetDataFromUnidrive getter = new GetDataFromUnidrive("http://192.168.130.182/US/4.02/dynamic/readparval.xml");
-        String response = getter.getResponse();
+        String response = getter.submittingForm();
         System.out.println(response);
     /*    ParserXML parser = new ParserXML(response);
         parser.processLineByLine();
