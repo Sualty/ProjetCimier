@@ -1,4 +1,0 @@
-<parameters>
-<parameter name="1.21" value="55" dp="1" text="5.5Hz" />
-<parameter name="1.24" value="0" dp="1" text="0.0Hz" />
-</parameters>
