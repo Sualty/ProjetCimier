@@ -2,8 +2,7 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         GetDataFromUnidrive getter = new GetDataFromUnidrive("http://192.168.130.182/US/4.02/dynamic/readparval.xml");
-        String response = getter.submittingForm();
-        System.out.println(response);
+        getter.displayCurrent();
     /*    ParserXML parser = new ParserXML(response);
         parser.processLineByLine();
         String nom = parser.getNom_param();
