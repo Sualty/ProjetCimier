@@ -1,8 +1,13 @@
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.*;
 
+import java.io.File;
+import java.io.PrintWriter;
 import java.net.URISyntaxException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -54,13 +59,30 @@ public class GetDataFromUnidrive {
             //accessing to the data
             HtmlPage page_final = webClient.getPage("http://192.168.130.182/US/4/parameters/menu.htm");
             try {
+
+                DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+                Date date = new Date();
+
+                File file = new File(dateFormat.format(date)+".txt");
+                file.getParentFile().mkdirs();
+                PrintWriter writer = new PrintWriter(file, "UTF-8");
+
+
                 for (int i=0;i<=5;i++) {
                     page_final = webClient.getPage("http://192.168.130.182/US/4/parameters/menu.htm");
                     HtmlElement active_current = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[7]/td[2]");
-                    //System.out.println("LE COURANT EST "+active_current.getTextContent());
+
+                    //writing to list
                     this.currentValues.add(parseCurrent(active_current.getTextContent()));
+
+                    //writing to file
+                    Date d = new Date();
+                    writer.println(dateFormat.format(d)+"   "+active_current.getTextContent());
+
+                    //sleeping 1 second
                     Thread.sleep(1000);
                 }
+                writer.close();
             } catch (InterruptedException e) {
                 final HtmlElement button_logout = (HtmlElement)page_final.getElementById("mainnav7");
                 HtmlPage page_out = button_logout.click();
