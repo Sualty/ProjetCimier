@@ -1,5 +1,6 @@
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.*;
+import org.jfree.ui.RefineryUtilities;
 
 import java.io.File;
 import java.io.IOException;
@@ -66,24 +67,42 @@ public class GetDataFromUnidrive {
 
                 try {
 
-                    //DateFormat dateFormat = new SimpleDateFormat("yyyy\\MM\\dd\\HH_mm_ss");
-                    DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+                    //setting log file
+                    DateFormat dateFormat = new SimpleDateFormat("yyyy\\MM\\dd\\HH_mm_ss");
+                    //DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
                     Date date = new Date();
                     System.out.println(dateFormat.format(date) + ".txt");
                     File file = new File(dateFormat.format(date) + ".txt");
                     file.getParentFile().mkdirs();
                     PrintWriter writer = new PrintWriter(file, "UTF-8");
 
-                    for (int i = 0; i <= 10; i++) {
+                    //setting graphs
+                    DynamicDataDemo active_current_graph = new DynamicDataDemo("Active current");
+                    active_current_graph.pack();
+                    RefineryUtilities.centerFrameOnScreen(active_current_graph);
+                    active_current_graph.setVisible(true);
+
+                    DynamicDataDemo current_magnitude_graph = new DynamicDataDemo("Active current");
+                    current_magnitude_graph.pack();
+                    RefineryUtilities.centerFrameOnScreen(current_magnitude_graph);
+                    current_magnitude_graph.setVisible(true);
+
+                    for (int i = 0; i <= 15; i++) {
                         page_final = webClient.getPage("http://192.168.130.182/US/4/parameters/menu.htm");
                         HtmlElement active_current = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[7]/td[2]");
                         HtmlElement current_magnitude = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[5]/td[2]");
-                        //writing to list
+
+                        //writing to list for static graphs
                         this.currentValues.add(parseCurrent(active_current.getTextContent()));
                         this.currentMagnitudeValues.add(parseCurrent(current_magnitude.getTextContent()));
-                        //writing to file
+
+                        //writing to log file
                         Date d = new Date();
                         writer.println(dateFormat.format(d) + "   Active Current : " + active_current.getTextContent()+ "    Current Magnitude :" + current_magnitude.getTextContent());
+
+                        //writing to dynamic graph
+                        active_current_graph.setLastValue(parseCurrent(active_current.getTextContent()));
+                        current_magnitude_graph.setLastValue(parseCurrent(current_magnitude.getTextContent()));
 
                         //sleeping 1 second
                         Thread.sleep(1000);

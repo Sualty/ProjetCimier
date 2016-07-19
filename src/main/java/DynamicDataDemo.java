@@ -8,7 +8,6 @@ import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.ui.ApplicationFrame;
-import org.jfree.ui.RefineryUtilities;
 
 import javax.swing.*;
 import java.awt.*;
@@ -24,7 +23,7 @@ public class DynamicDataDemo extends ApplicationFrame implements ActionListener 
     private TimeSeries series;
 
     /** The most recent value added. */
-    private double lastValue = 100.0;
+    private double lastValue = 0.0;
 
     /** Timer to refresh graph after every 1/4th of a second */
     private Timer timer = new Timer(250, this);
@@ -100,7 +99,7 @@ public class DynamicDataDemo extends ApplicationFrame implements ActionListener 
         xaxis.setVerticalTickLabels(true);
 
         ValueAxis yaxis = plot.getRangeAxis();
-        yaxis.setRange(0.0, 300.0);
+        yaxis.setRange(0.0, 5.0);
 
         return result;
     }
@@ -111,27 +110,14 @@ public class DynamicDataDemo extends ApplicationFrame implements ActionListener 
      */
     public void actionPerformed(final ActionEvent e) {
 
-        final double factor = 0.9 + 0.2*Math.random();
-        this.lastValue = this.lastValue * factor;
+       // final double factor = 0.9 + 0.2*Math.random();
+     //   this.lastValue = this.lastValue * factor;
 
         final Millisecond now = new Millisecond();
         this.series.add(new Millisecond(), this.lastValue);
-
-        System.out.println("Current Time in Milliseconds = " + now.toString()+", Current Value : "+this.lastValue);
     }
 
-    /**
-     * Starting point for the dynamic graph application.
-     *
-     * @param args  ignored.
-     */
-    public static void main(final String[] args) {
-
-        DynamicDataDemo demo = new DynamicDataDemo("Dynamic Line And TimeSeries Chart");
-        demo.pack();
-        RefineryUtilities.centerFrameOnScreen(demo);
-        demo.setVisible(true);
-
+    public void setLastValue(double v) {
+        this.lastValue = v;
     }
-
 }  
