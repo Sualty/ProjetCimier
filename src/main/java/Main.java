@@ -7,10 +7,16 @@ public class Main {
         GetDataFromUnidrive getter = new GetDataFromUnidrive("http://192.168.130.182/US/4.02/dynamic/readparval.xml");
         getter.displayCurrent();
         List<Double> valeurs = getter.getListCurrent();
-        DrawGraph graphe = new DrawGraph("test", "Courant dans le moteur en fonction du temps", valeurs);
+        List<Double> valeurs_magnitude = getter.getListCurrentMagnitude();
+        DrawGraph graphe = new DrawGraph("Active Current", "Courant dans le moteur en fonction du temps", valeurs);
         graphe.pack( );
         RefineryUtilities.centerFrameOnScreen( graphe );
         graphe.setVisible( true );
+
+        DrawGraph graphe2 = new DrawGraph("Magnitude Current", "Courant dans le moteur en fonction du temps", valeurs_magnitude);
+        graphe2.pack( );
+        RefineryUtilities.centerFrameOnScreen( graphe2 );
+        graphe2.setVisible( true );
 
     /*    ParserXML parser = new ParserXML(response);
         parser.processLineByLine();

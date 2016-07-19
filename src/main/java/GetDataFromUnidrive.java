@@ -17,6 +17,7 @@ import java.util.List;
 public class GetDataFromUnidrive {
 
     private List<Double> currentValues;
+    private List<Double> currentMagnitudeValues;
     /**
      * Constructor
      * @param addr the URI request
@@ -24,6 +25,7 @@ public class GetDataFromUnidrive {
      */
     public GetDataFromUnidrive(String addr) throws URISyntaxException {
         this.currentValues = new ArrayList<>();
+        this.currentMagnitudeValues = new ArrayList<>();
     }
 
     /**
@@ -64,8 +66,8 @@ public class GetDataFromUnidrive {
 
                 try {
 
-                    DateFormat dateFormat = new SimpleDateFormat("yyyy\\MM\\dd\\HH_mm_ss");
-                    //DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+                    //DateFormat dateFormat = new SimpleDateFormat("yyyy\\MM\\dd\\HH_mm_ss");
+                    DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
                     Date date = new Date();
                     System.out.println(dateFormat.format(date) + ".txt");
                     File file = new File(dateFormat.format(date) + ".txt");
@@ -75,10 +77,10 @@ public class GetDataFromUnidrive {
                     for (int i = 0; i <= 10; i++) {
                         page_final = webClient.getPage("http://192.168.130.182/US/4/parameters/menu.htm");
                         HtmlElement active_current = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[7]/td[2]");
-
+                        HtmlElement current_magnitude = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[5]/td[2]");
                         //writing to list
                         this.currentValues.add(parseCurrent(active_current.getTextContent()));
-
+                        this.currentMagnitudeValues.add(parseCurrent(current_magnitude.getTextContent()));
                         //writing to file
                         Date d = new Date();
                         writer.println(dateFormat.format(d) + "   " + active_current.getTextContent());
@@ -121,5 +123,9 @@ public class GetDataFromUnidrive {
 
     public List<Double> getListCurrent() {
         return this.currentValues;
+    }
+
+    public List<Double> getListCurrentMagnitude() {
+        return this.currentMagnitudeValues;
     }
 }
