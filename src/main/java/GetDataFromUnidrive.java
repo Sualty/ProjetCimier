@@ -63,15 +63,16 @@ public class GetDataFromUnidrive {
                 HtmlPage page_final = webClient.getPage("http://192.168.130.182/US/4/parameters/menu.htm");
                 try {
 
-                    DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+                    DateFormat dateFormat = new SimpleDateFormat("yyyy\\MM\\dd HH:mm:ss");
                     Date date = new Date();
 
                     File file = new File(dateFormat.format(date) + ".txt");
                     file.getParentFile().mkdirs();
                     PrintWriter writer = new PrintWriter(file, "UTF-8");
-
+                    System.out.println("FILE CREATED?Before loop");
 
                     for (int i = 0; i <= 5; i++) {
+                        System.out.println("Begin of the "+i+"loop");
                         page_final = webClient.getPage("http://192.168.130.182/US/4/parameters/menu.htm");
                         HtmlElement active_current = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[7]/td[2]");
 
@@ -87,12 +88,15 @@ public class GetDataFromUnidrive {
                     }
                     writer.close();
                 } catch (InterruptedException e) {
+                    System.out.println("OH HO");
                     final HtmlElement button_logout = (HtmlElement) page_final.getElementById("mainnav7");
                     HtmlPage page_out = button_logout.click();
                     System.out.println(page_out.getTitleText());
                 }
 
+
                 for (int i = 0; i < this.currentValues.size(); i++) {
+                    System.out.println("enter loop diplay current values");
                     System.out.println(currentValues.get(i));
                 }
 
@@ -119,3 +123,4 @@ public class GetDataFromUnidrive {
         return this.currentValues;
     }
 }
+
