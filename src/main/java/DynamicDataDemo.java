@@ -1,12 +1,3 @@
-package org.jfree.chart.demo;
-
-import java.awt.BorderLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
-import javax.swing.JButton;
-import javax.swing.JPanel;
-
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -19,10 +10,13 @@ import org.jfree.data.xy.XYDataset;
 import org.jfree.ui.ApplicationFrame;
 import org.jfree.ui.RefineryUtilities;
 
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
 /**
- * A demonstration application showing a time series chart where you can dynamically add
- * (random) data by clicking on a button.
- *
+ * An example to show how we can create a dynamic chart.
  */
 public class DynamicDataDemo extends ApplicationFrame implements ActionListener {
 
@@ -32,8 +26,11 @@ public class DynamicDataDemo extends ApplicationFrame implements ActionListener 
     /** The most recent value added. */
     private double lastValue = 100.0;
 
+    /** Timer to refresh graph after every 1/4th of a second */
+    private Timer timer = new Timer(250, this);
+
     /**
-     * Constructs a new demonstration application.
+     * Constructs a new dynamic chart application.
      *
      * @param title  the frame title.
      */
@@ -41,19 +38,31 @@ public class DynamicDataDemo extends ApplicationFrame implements ActionListener 
 
         super(title);
         this.series = new TimeSeries("Random Data", Millisecond.class);
+
         final TimeSeriesCollection dataset = new TimeSeriesCollection(this.series);
         final JFreeChart chart = createChart(dataset);
 
-        final ChartPanel chartPanel = new ChartPanel(chart);
-        final JButton button = new JButton("Add New Data Item");
-        button.setActionCommand("ADD_DATA");
-        button.addActionListener(this);
+        timer.setInitialDelay(1000);
 
+        //Sets background color of chart
+        chart.setBackgroundPaint(Color.LIGHT_GRAY);
+
+        //Created JPanel to show graph on screen
         final JPanel content = new JPanel(new BorderLayout());
+
+        //Created Chartpanel for chart area
+        final ChartPanel chartPanel = new ChartPanel(chart);
+
+        //Added chartpanel to main panel
         content.add(chartPanel);
-        content.add(button, BorderLayout.SOUTH);
-        chartPanel.setPreferredSize(new java.awt.Dimension(500, 270));
+
+        //Sets the size of whole window (JPanel)
+        chartPanel.setPreferredSize(new java.awt.Dimension(800, 500));
+
+        //Puts the whole content on a Frame
         setContentPane(content);
+
+        timer.start();
 
     }
 
@@ -66,7 +75,7 @@ public class DynamicDataDemo extends ApplicationFrame implements ActionListener 
      */
     private JFreeChart createChart(final XYDataset dataset) {
         final JFreeChart result = ChartFactory.createTimeSeriesChart(
-                "Dynamic Data Demo",
+                "Dynamic Line And TimeSeries Chart",
                 "Time",
                 "Value",
                 dataset,
@@ -74,53 +83,55 @@ public class DynamicDataDemo extends ApplicationFrame implements ActionListener 
                 true,
                 false
         );
+
         final XYPlot plot = result.getXYPlot();
-        ValueAxis axis = plot.getDomainAxis();
-        axis.setAutoRange(true);
-        axis.setFixedAutoRange(60000.0);  // 60 seconds
-        axis = plot.getRangeAxis();
-        axis.setRange(0.0, 200.0);
+
+        plot.setBackgroundPaint(new Color(0xffffe0));
+        plot.setDomainGridlinesVisible(true);
+        plot.setDomainGridlinePaint(Color.lightGray);
+        plot.setRangeGridlinesVisible(true);
+        plot.setRangeGridlinePaint(Color.lightGray);
+
+        ValueAxis xaxis = plot.getDomainAxis();
+        xaxis.setAutoRange(true);
+
+        //Domain axis would show data of 60 seconds for a time
+        xaxis.setFixedAutoRange(60000.0);  // 60 seconds
+        xaxis.setVerticalTickLabels(true);
+
+        ValueAxis yaxis = plot.getRangeAxis();
+        yaxis.setRange(0.0, 300.0);
+
         return result;
     }
-
-    // ****************************************************************************
-    // * JFREECHART DEVELOPER GUIDE                                               *
-    // * The JFreeChart Developer Guide, written by David Gilbert, is available   *
-    // * to purchase from Object Refinery Limited:                                *
-    // *                                                                          *
-    // * http://www.object-refinery.com/jfreechart/guide.html                     *
-    // *                                                                          *
-    // * Sales are used to provide funding for the JFreeChart project - please    *
-    // * support us so that we can continue developing free software.             *
-    // ****************************************************************************
-
     /**
-     * Handles a click on the button by adding new (random) data.
+     * Generates an random entry for a particular call made by time for every 1/4th of a second.
      *
      * @param e  the action event.
      */
     public void actionPerformed(final ActionEvent e) {
-        if (e.getActionCommand().equals("ADD_DATA")) {
-            final double factor = 0.90 + 0.2 * Math.random();
-            this.lastValue = this.lastValue * factor;
-            final Millisecond now = new Millisecond();
-            System.out.println("Now = " + now.toString());
-            this.series.add(new Millisecond(), this.lastValue);
-        }
+
+        final double factor = 0.9 + 0.2*Math.random();
+        this.lastValue = this.lastValue * factor;
+
+        final Millisecond now = new Millisecond();
+        this.series.add(new Millisecond(), this.lastValue);
+
+        System.out.println("Current Time in Milliseconds = " + now.toString()+", Current Value : "+this.lastValue);
     }
 
     /**
-     * Starting point for the demonstration application.
+     * Starting point for the dynamic graph application.
      *
      * @param args  ignored.
      */
     public static void main(final String[] args) {
 
-        final DynamicDataDemo demo = new DynamicDataDemo("Dynamic Data Demo");
+        DynamicDataDemo demo = new DynamicDataDemo("Dynamic Line And TimeSeries Chart");
         demo.pack();
         RefineryUtilities.centerFrameOnScreen(demo);
         demo.setVisible(true);
 
     }
 
-}
+}  
