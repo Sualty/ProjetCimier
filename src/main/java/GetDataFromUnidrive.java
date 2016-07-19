@@ -83,7 +83,7 @@ public class GetDataFromUnidrive {
                         this.currentMagnitudeValues.add(parseCurrent(current_magnitude.getTextContent()));
                         //writing to file
                         Date d = new Date();
-                        writer.println(dateFormat.format(d) + "   " + active_current.getTextContent());
+                        writer.println(dateFormat.format(d) + "   Active Current : " + active_current.getTextContent()+ "    Current Magnitude :" + current_magnitude.getTextContent());
 
                         //sleeping 1 second
                         Thread.sleep(1000);
