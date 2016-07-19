@@ -65,10 +65,13 @@ public class GetDataFromUnidrive {
                 try {
                     System.out.println("entering trycatch of date");
                     DateFormat dateFormat = new SimpleDateFormat("yyyy\\MM\\dd HH:mm:ss");
+                    System.out.println("create date format");
                     Date date = new Date();
-
+                    System.out.println("create date");
                     File file = new File(dateFormat.format(date) + ".txt");
+                    System.out.println("init file");
                     file.getParentFile().mkdirs();
+                    System.out.println("create file");
                     PrintWriter writer = new PrintWriter(file, "UTF-8");
                     System.out.println("FILE CREATED?Before loop");
 
