@@ -92,6 +92,7 @@ public class GetDataFromUnidrive {
                     }
                     writer.close();
                 } catch (InterruptedException e) {
+                    e.printStackTrace();
                     System.out.println("OH HO");
                     final HtmlElement button_logout = (HtmlElement) page_final.getElementById("mainnav7");
                     HtmlPage page_out = button_logout.click();
