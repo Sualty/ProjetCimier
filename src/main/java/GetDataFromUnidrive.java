@@ -112,6 +112,7 @@ public class GetDataFromUnidrive {
 
         }
         catch(Exception e) {
+            e.printStackTrace();
             System.out.println("TOUT EST CASSÉÉÉÉ");
             HtmlPage page_final = webClient.getPage("http://192.168.130.182/US/4/parameters/menu.htm");
             final HtmlElement button_logout = (HtmlElement) page_final.getElementById("mainnav7");
