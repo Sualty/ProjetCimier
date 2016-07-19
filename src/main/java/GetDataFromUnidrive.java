@@ -61,8 +61,9 @@ public class GetDataFromUnidrive {
 
                 //accessing to the data
                 HtmlPage page_final = webClient.getPage("http://192.168.130.182/US/4/parameters/menu.htm");
+                System.out.println("after defining page_final");
                 try {
-
+                    System.out.println("entering trycatch of date");
                     DateFormat dateFormat = new SimpleDateFormat("yyyy\\MM\\dd HH:mm:ss");
                     Date date = new Date();
 
@@ -107,6 +108,7 @@ public class GetDataFromUnidrive {
 
         }
         catch(Exception e) {
+            System.out.println("TOUT EST CASSÉÉÉÉ");
             HtmlPage page_final = webClient.getPage("http://192.168.130.182/US/4/parameters/menu.htm");
             final HtmlElement button_logout = (HtmlElement) page_final.getElementById("mainnav7");
             HtmlPage page_out = button_logout.click();
