@@ -61,22 +61,18 @@ public class GetDataFromUnidrive {
 
                 //accessing to the data
                 HtmlPage page_final = webClient.getPage("http://192.168.130.182/US/4/parameters/menu.htm");
-                System.out.println("after defining page_final");
+
                 try {
-                    System.out.println("entering trycatch of date");
-                    DateFormat dateFormat = new SimpleDateFormat("yyyy\\MM\\dd HH:mm:ss");
-                    System.out.println("create date format");
+
+                    DateFormat dateFormat = new SimpleDateFormat("yyyy\\MM\\dd\\HH_mm_ss");
+                    //DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
                     Date date = new Date();
-                    System.out.println("create date");
+                    System.out.println(dateFormat.format(date) + ".txt");
                     File file = new File(dateFormat.format(date) + ".txt");
-                    System.out.println("init file");
                     file.getParentFile().mkdirs();
-                    System.out.println("create file");
                     PrintWriter writer = new PrintWriter(file, "UTF-8");
-                    System.out.println("FILE CREATED?Before loop");
 
                     for (int i = 0; i <= 5; i++) {
-                        System.out.println("Begin of the "+i+"loop");
                         page_final = webClient.getPage("http://192.168.130.182/US/4/parameters/menu.htm");
                         HtmlElement active_current = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[7]/td[2]");
 
@@ -93,7 +89,6 @@ public class GetDataFromUnidrive {
                     writer.close();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
-                    System.out.println("OH HO");
                     final HtmlElement button_logout = (HtmlElement) page_final.getElementById("mainnav7");
                     HtmlPage page_out = button_logout.click();
                     System.out.println(page_out.getTitleText());
@@ -101,7 +96,6 @@ public class GetDataFromUnidrive {
 
 
                 for (int i = 0; i < this.currentValues.size(); i++) {
-                    System.out.println("enter loop diplay current values");
                     System.out.println(currentValues.get(i));
                 }
 
@@ -113,7 +107,6 @@ public class GetDataFromUnidrive {
         }
         catch(Exception e) {
             e.printStackTrace();
-            System.out.println("TOUT EST CASSÉÉÉÉ");
             HtmlPage page_final = webClient.getPage("http://192.168.130.182/US/4/parameters/menu.htm");
             final HtmlElement button_logout = (HtmlElement) page_final.getElementById("mainnav7");
             HtmlPage page_out = button_logout.click();
@@ -130,4 +123,3 @@ public class GetDataFromUnidrive {
         return this.currentValues;
     }
 }
-
