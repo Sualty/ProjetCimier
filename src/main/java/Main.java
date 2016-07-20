@@ -10,16 +10,18 @@ public class Main {
         List<Double> valeurs = getter.getListCurrent();
         List<Double> valeurs_magnitude = getter.getListCurrentMagnitude();
 
-        DrawGraph graphe = new DrawGraph("Courant actif", "Courant dans le moteur en fonction du temps", valeurs);
+        DrawGraph graphe = new DrawGraph("Courant actif", "Courant actif dans le moteur en fonction du temps","Courant actif (A)", valeurs);
         graphe.pack( );
         RefineryUtilities.centerFrameOnScreen( graphe );
         graphe.setVisible( true );
 
-        DrawGraph graphe2 = new DrawGraph("Magnitude Current", "Courant dans le moteur en fonction du temps", valeurs_magnitude);
+        DrawGraph graphe2 = new DrawGraph("Magnitude Current", "Magnitude du courant dans le moteur en fonction du temps","Magnitude du courant (A)", valeurs_magnitude);
         graphe2.pack( );
         RefineryUtilities.centerFrameOnScreen( graphe2 );
         graphe2.setVisible( true );
 
+        graphe.saveGraph();
+        graphe2.saveGraph();
 
 
     }

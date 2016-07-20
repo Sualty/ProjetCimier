@@ -11,7 +11,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Collections;
 
 /**
  * This class opens a socket for sending a request to the Unidrive SP .
@@ -73,7 +72,7 @@ public class GetDataFromUnidrive {
 
                     //setting log file
                     DateFormat dateFormat = new SimpleDateFormat("yyyy\\MM\\dd\\HH_mm_ss");
-                    //DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");  POUR LINUX
+                    //DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd/HH:mm:ss");  //POUR LINUX
                     Date date = new Date();
                     System.out.println(dateFormat.format(date) + ".txt");
                     File file = new File(dateFormat.format(date) + ".txt");
@@ -112,7 +111,11 @@ public class GetDataFromUnidrive {
 
                         //sleeping 1 second
                         Thread.sleep(1000);
-                    }while (this.getListCurrentMagnitude().get(this.getListCurrentMagnitude().size() - 1) != 0);
+                    }
+                    while(!(this.currentMagnitudeValues.size()>1
+                            && this.currentMagnitudeValues.get(currentMagnitudeValues.size()-1)==0
+                            && this.currentMagnitudeValues.get(currentMagnitudeValues.size()-2)!=0 ));
+                    //while (this.getListCurrentMagnitude().get(this.getListCurrentMagnitude().size() - 1) != 0);
 
                     writer.close();
                 } catch (InterruptedException e) {
