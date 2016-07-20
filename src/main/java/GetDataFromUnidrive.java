@@ -11,6 +11,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Collections;
 
 /**
  * This class opens a socket for sending a request to the Unidrive SP .
@@ -19,8 +20,10 @@ public class GetDataFromUnidrive {
 
     private List<Double> currentValues;
     private List<Double> currentMagnitudeValues;
+
     /**
      * Constructor
+     *
      * @param addr the URI request
      * @throws URISyntaxException
      */
@@ -31,6 +34,7 @@ public class GetDataFromUnidrive {
 
     /**
      * Connecting using username and password ; then getting the active current each second .
+     *
      * @throws Exception
      */
     public void displayCurrent() throws IOException {
@@ -43,7 +47,7 @@ public class GetDataFromUnidrive {
 
             //Connecting using administrator account
             List<HtmlForm> arr = page1.getForms();
-            for(HtmlForm form : arr) {
+            for (HtmlForm form : arr) {
                 final HtmlTextInput username = form.getInputByName("UserLogin_InputUsername");
                 if (username == null) {
                     System.out.println("NULL USER");
@@ -69,7 +73,7 @@ public class GetDataFromUnidrive {
 
                     //setting log file
                     DateFormat dateFormat = new SimpleDateFormat("yyyy\\MM\\dd\\HH_mm_ss");
-                    //DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+                    //DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");  POUR LINUX
                     Date date = new Date();
                     System.out.println(dateFormat.format(date) + ".txt");
                     File file = new File(dateFormat.format(date) + ".txt");
@@ -77,17 +81,19 @@ public class GetDataFromUnidrive {
                     PrintWriter writer = new PrintWriter(file, "UTF-8");
 
                     //setting graphs
-                    DynamicDataDemo active_current_graph = new DynamicDataDemo("Active current", -0.5, 0.5);
+                    DynamicDataDemo active_current_graph = new DynamicDataDemo("Courant actif en fonction du temps", "Temps (s)", "Courant actif (A)");
                     active_current_graph.pack();
                     RefineryUtilities.centerFrameOnScreen(active_current_graph);
                     active_current_graph.setVisible(true);
 
-                    DynamicDataDemo current_magnitude_graph = new DynamicDataDemo("Active current", 0, 5);
+                    DynamicDataDemo current_magnitude_graph = new DynamicDataDemo("Amplitude du courant en fonction du temps", "Temps (s)", "Amplitude du courant (A)");
                     current_magnitude_graph.pack();
                     RefineryUtilities.centerFrameOnScreen(current_magnitude_graph);
                     current_magnitude_graph.setVisible(true);
 
-                    for (int i = 0; i <= 15; i++) {
+
+
+                    do {
                         page_final = webClient.getPage("http://192.168.130.182/US/4/parameters/menu.htm");
                         HtmlElement active_current = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[7]/td[2]");
                         HtmlElement current_magnitude = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[5]/td[2]");
@@ -98,7 +104,7 @@ public class GetDataFromUnidrive {
 
                         //writing to log file
                         Date d = new Date();
-                        writer.println(dateFormat.format(d) + "   Active Current : " + active_current.getTextContent()+ "    Current Magnitude :" + current_magnitude.getTextContent());
+                        writer.println(dateFormat.format(d) + "   Active Current : " + active_current.getTextContent() + "    Current Magnitude :" + current_magnitude.getTextContent());
 
                         //writing to dynamic graph
                         active_current_graph.setLastValue(parseCurrent(active_current.getTextContent()));
@@ -106,7 +112,8 @@ public class GetDataFromUnidrive {
 
                         //sleeping 1 second
                         Thread.sleep(1000);
-                    }
+                    }while (this.getListCurrentMagnitude().get(this.getListCurrentMagnitude().size() - 1) != 0);
+
                     writer.close();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -125,8 +132,7 @@ public class GetDataFromUnidrive {
                 System.out.println(page_out.getTitleText());
             }
 
-        }
-        catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             HtmlPage page_final = webClient.getPage("http://192.168.130.182/US/4/parameters/menu.htm");
             final HtmlElement button_logout = (HtmlElement) page_final.getElementById("mainnav7");
@@ -137,7 +143,7 @@ public class GetDataFromUnidrive {
 
 
     public double parseCurrent(String current) {
-        return Double.parseDouble(current.substring(0,current.length()-1));
+        return Double.parseDouble(current.substring(0, current.length() - 1));
     }
 
     public List<Double> getListCurrent() {
@@ -147,4 +153,5 @@ public class GetDataFromUnidrive {
     public List<Double> getListCurrentMagnitude() {
         return this.currentMagnitudeValues;
     }
+
 }

@@ -28,21 +28,17 @@ public class DynamicDataDemo extends ApplicationFrame implements ActionListener 
     /** Timer to refresh graph after every 1/4th of a second */
     private Timer timer = new Timer(250, this);
 
-    private double yMin = 0;
-    private double yMax = 5;
         /**
      * Constructs a new dynamic chart application.
      *
      * @param title  the frame title.
      */
-    public DynamicDataDemo(final String title, double yMin, double yMax) {
+    public DynamicDataDemo(final String title, String titleX, String titleY) {
 
         super(title);
         this.series = new TimeSeries("Intensité", Millisecond.class);
-        this.yMin = yMin;
-        this.yMax = yMax;
         final TimeSeriesCollection dataset = new TimeSeriesCollection(this.series);
-        final JFreeChart chart = createChart(dataset);
+        final JFreeChart chart = createChart(dataset, title, titleX, titleY);
 
         timer.setInitialDelay(1000);
 
@@ -75,11 +71,11 @@ public class DynamicDataDemo extends ApplicationFrame implements ActionListener 
      *
      * @return A sample chart.
      */
-    private JFreeChart createChart(final XYDataset dataset) {
+    private JFreeChart createChart(final XYDataset dataset, String title, String titleX, String titleY) {
         final JFreeChart result = ChartFactory.createTimeSeriesChart(
-                "Dynamic Line And TimeSeries Chart",
-                "Time",
-                "Value",
+                title,
+                titleX,
+                titleY,
                 dataset,
                 true,
                 true,
@@ -102,7 +98,7 @@ public class DynamicDataDemo extends ApplicationFrame implements ActionListener 
         xaxis.setVerticalTickLabels(true);
 
         ValueAxis yaxis = plot.getRangeAxis();
-        yaxis.setRange(this.yMin, this.yMax);
+        yaxis.setAutoRange(true);
 
         return result;
     }

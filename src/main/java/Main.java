@@ -10,7 +10,7 @@ public class Main {
         List<Double> valeurs = getter.getListCurrent();
         List<Double> valeurs_magnitude = getter.getListCurrentMagnitude();
 
-        DrawGraph graphe = new DrawGraph("Active Current", "Courant dans le moteur en fonction du temps", valeurs);
+        DrawGraph graphe = new DrawGraph("Courant actif", "Courant dans le moteur en fonction du temps", valeurs);
         graphe.pack( );
         RefineryUtilities.centerFrameOnScreen( graphe );
         graphe.setVisible( true );
