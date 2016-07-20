@@ -28,16 +28,19 @@ public class DynamicDataDemo extends ApplicationFrame implements ActionListener 
     /** Timer to refresh graph after every 1/4th of a second */
     private Timer timer = new Timer(250, this);
 
-    /**
+    private double yMin = 0;
+    private double yMax = 5;
+        /**
      * Constructs a new dynamic chart application.
      *
      * @param title  the frame title.
      */
-    public DynamicDataDemo(final String title) {
+    public DynamicDataDemo(final String title, double yMin, double yMax) {
 
         super(title);
-        this.series = new TimeSeries("Random Data", Millisecond.class);
-
+        this.series = new TimeSeries("Intensité", Millisecond.class);
+        this.yMin = yMin;
+        this.yMax = yMax;
         final TimeSeriesCollection dataset = new TimeSeriesCollection(this.series);
         final JFreeChart chart = createChart(dataset);
 
@@ -99,25 +102,21 @@ public class DynamicDataDemo extends ApplicationFrame implements ActionListener 
         xaxis.setVerticalTickLabels(true);
 
         ValueAxis yaxis = plot.getRangeAxis();
-        yaxis.setRange(0.0, 5.0);
+        yaxis.setRange(this.yMin, this.yMax);
 
         return result;
     }
-    /**
-     * Generates an random entry for a particular call made by time for every 1/4th of a second.
-     *
-     * @param e  the action event.
-     */
-    public void actionPerformed(final ActionEvent e) {
 
-       // final double factor = 0.9 + 0.2*Math.random();
-     //   this.lastValue = this.lastValue * factor;
+    public void actionPerformed(final ActionEvent e) {
 
         final Millisecond now = new Millisecond();
         this.series.add(new Millisecond(), this.lastValue);
     }
 
     public void setLastValue(double v) {
+        if(v == 0 && this.lastValue != 0){
+            timer.stop();
+        }
         this.lastValue = v;
     }
 }  

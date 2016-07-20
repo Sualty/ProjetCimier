@@ -77,12 +77,12 @@ public class GetDataFromUnidrive {
                     PrintWriter writer = new PrintWriter(file, "UTF-8");
 
                     //setting graphs
-                    DynamicDataDemo active_current_graph = new DynamicDataDemo("Active current");
+                    DynamicDataDemo active_current_graph = new DynamicDataDemo("Active current", -0.5, 0.5);
                     active_current_graph.pack();
                     RefineryUtilities.centerFrameOnScreen(active_current_graph);
                     active_current_graph.setVisible(true);
 
-                    DynamicDataDemo current_magnitude_graph = new DynamicDataDemo("Active current");
+                    DynamicDataDemo current_magnitude_graph = new DynamicDataDemo("Active current", 0, 5);
                     current_magnitude_graph.pack();
                     RefineryUtilities.centerFrameOnScreen(current_magnitude_graph);
                     current_magnitude_graph.setVisible(true);
