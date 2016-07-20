@@ -1,10 +1,10 @@
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.*;
+import com.opencsv.CSVWriter;
 import org.jfree.ui.RefineryUtilities;
 
-import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -74,10 +74,6 @@ public class GetDataFromUnidrive {
                     DateFormat dateFormat = new SimpleDateFormat("yyyy\\MM\\dd\\HH_mm_ss");
                     //DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd/HH:mm:ss");  //POUR LINUX
                     Date date = new Date();
-                    System.out.println(dateFormat.format(date) + ".txt");
-                    File file = new File(dateFormat.format(date) + ".txt");
-                    file.getParentFile().mkdirs();
-                    PrintWriter writer = new PrintWriter(file, "UTF-8");
 
                     //setting graphs
                     DynamicDataDemo active_current_graph = new DynamicDataDemo("Courant actif en fonction du temps", "Temps (s)", "Courant actif (A)");
@@ -90,8 +86,9 @@ public class GetDataFromUnidrive {
                     RefineryUtilities.centerFrameOnScreen(current_magnitude_graph);
                     current_magnitude_graph.setVisible(true);
 
-
-
+                    CSVWriter writer = new CSVWriter(new FileWriter(dateFormat.format(date)+".csv"), '\t');
+                    String[] first_entries= {"Date","Active current","Current magnitude"};
+                    writer.writeNext(first_entries);
                     do {
                         page_final = webClient.getPage("http://192.168.130.182/US/4/parameters/menu.htm");
                         HtmlElement active_current = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[7]/td[2]");
@@ -103,7 +100,11 @@ public class GetDataFromUnidrive {
 
                         //writing to log file
                         Date d = new Date();
-                        writer.println(dateFormat.format(d) + "   Active Current : " + active_current.getTextContent() + "    Current Magnitude :" + current_magnitude.getTextContent());
+
+                        // feed in your array (or convert your data to an array)
+                        String[] entries = {dateFormat.format(d),active_current.getTextContent(),current_magnitude.getTextContent()};
+                        writer.writeNext(entries);
+
 
                         //writing to dynamic graph
                         active_current_graph.setLastValue(parseCurrent(active_current.getTextContent()));
@@ -115,7 +116,6 @@ public class GetDataFromUnidrive {
                     while(!(this.currentMagnitudeValues.size()>1
                             && this.currentMagnitudeValues.get(currentMagnitudeValues.size()-1)==0
                             && this.currentMagnitudeValues.get(currentMagnitudeValues.size()-2)!=0 ));
-                    //while (this.getListCurrentMagnitude().get(this.getListCurrentMagnitude().size() - 1) != 0);
 
                     writer.close();
                 } catch (InterruptedException e) {
