@@ -1,9 +1,20 @@
 import org.jfree.ui.RefineryUtilities;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 
 import java.util.List;
+
 public class Main {
 
     public static void main(String[] args) throws Exception {
+        String url = "jdbc:mysql://localhost:3306/testbase?useSSL=false";
+        String username = "user";
+        String password = "password";
+        ConnectDatabase database = new ConnectDatabase(url, username, password);
+
+
+
         GetDataFromUnidrive getter = new GetDataFromUnidrive("http://192.168.130.182/US/4.02/dynamic/readparval.xml");
         getter.displayCurrent();
 
@@ -19,6 +30,9 @@ public class Main {
         graphe2.pack( );
         RefineryUtilities.centerFrameOnScreen( graphe2 );
         graphe2.setVisible( true );
+
+
+
 
         graphe.saveGraph();
         graphe2.saveGraph();
