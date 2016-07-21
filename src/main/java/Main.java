@@ -6,8 +6,11 @@ public class Main {
         Class.forName("com.mysql.jdbc.Driver");
         ConnectDatabase database = new ConnectDatabase("jdbc:mysql://localhost:3306/cimier?useSSL=false","root","ZUdug@H!");
 
-        database.addData();
-        database.accessData();
+        database.addDatas();
+        database.accessDatas();
+        //database.emptyDatas();
+        //database.accessDatas();
+        database.closeConnection();
 /*
         GetDataFromUnidrive getter = new GetDataFromUnidrive("http://192.168.130.182/US/4.02/dynamic/readparval.xml");
         getter.displayCurrent();

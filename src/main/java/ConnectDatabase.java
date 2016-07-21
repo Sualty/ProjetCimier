@@ -25,7 +25,7 @@ public class ConnectDatabase {
 
     }
 
-    public void addData() {
+    public void addDatas() {
         try {
             Statement st = (Statement) con.createStatement();
 
@@ -39,11 +39,19 @@ public class ConnectDatabase {
         }
     }
 
-    public void removeData() {
+    public void emptyDatas() {
+        try {
+            Statement st = (Statement) con.createStatement();
 
+            st.executeUpdate("DELETE FROM datas");
+        }
+
+        catch (SQLException ex) {
+            ex.printStackTrace();
+        }
     }
 
-    public void accessData() {
+    public void accessDatas() {
         try {
             Statement st = (Statement) con.createStatement();
 
@@ -59,12 +67,18 @@ public class ConnectDatabase {
                 // print the results
                 System.out.println(id+" "+date.toString()+" "+val);
             }
-
-            con.close();
         }
 
         catch (SQLException ex) {
             ex.printStackTrace();
+        }
+    }
+
+    public void closeConnection () {
+        try {
+            con.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 }
