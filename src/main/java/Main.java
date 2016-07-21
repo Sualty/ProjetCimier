@@ -1,20 +1,14 @@
-import org.jfree.ui.RefineryUtilities;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-
-import java.util.List;
-
 public class Main {
 
     public static void main(String[] args) throws Exception {
-        String url = "jdbc:mysql://localhost:3306/testbase?useSSL=false";
-        String username = "user";
-        String password = "password";
-        ConnectDatabase database = new ConnectDatabase(url, username, password);
 
 
+        Class.forName("com.mysql.jdbc.Driver");
+        ConnectDatabase database = new ConnectDatabase("jdbc:mysql://localhost:3306/cimier?useSSL=false","root","ZUdug@H!");
 
+        database.addData();
+        database.accessData();
+/*
         GetDataFromUnidrive getter = new GetDataFromUnidrive("http://192.168.130.182/US/4.02/dynamic/readparval.xml");
         getter.displayCurrent();
 
@@ -37,6 +31,6 @@ public class Main {
         graphe.saveGraph();
         graphe2.saveGraph();
 
-
+*/
     }
 }
