@@ -93,6 +93,41 @@ public class ConnectDatabase {
         }
     }
 
+    public int getIdOfRecord(String day_of_year,String begin_hour,KindOfData kind) {
+        int id = -1;
+        try {
+            SimpleDateFormat formatter_date = new SimpleDateFormat("dd-MM-yyyy"); // your template here
+            SimpleDateFormat formatter_hour = new SimpleDateFormat("HH-mm-ss");
+
+            java.util.Date dateStr = formatter_date.parse(day_of_year);
+            java.sql.Date dateDB = new java.sql.Date(dateStr.getTime());
+
+            java.util.Date hourStr = formatter_date.parse(begin_hour);
+            java.sql.Date hourDB = new java.sql.Date(hourStr.getTime());
+
+            String updateString = "SELECT records.id FROM records WHERE records.day_of_year=? AND records.begin_hour=? AND records.kind=?";
+            PreparedStatement preparedStatement = con.prepareStatement(updateString);
+
+            preparedStatement.setDate(1,dateDB);
+            preparedStatement.setDate(2, hourDB);
+            preparedStatement.setString(3, kind.getTxt());
+
+            ResultSet rs = preparedStatement.executeQuery();
+
+            while (rs.next())
+            {
+                id = rs.getInt("id");
+            }
+            }
+        catch (SQLException e) {
+            e.printStackTrace();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        System.out.println(id);
+        return id;
+    }
+
     public void addDatas(int id,String date,double val) {
         try {
             SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy"); // your template here
