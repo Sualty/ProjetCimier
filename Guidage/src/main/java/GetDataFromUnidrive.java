@@ -1,11 +1,9 @@
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.*;
+import org.jfree.ui.RefineryUtilities;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -13,8 +11,14 @@ import java.util.List;
  */
 public class GetDataFromUnidrive {
 
-    private List<Double> currentValues;
-    private List<Double> currentMagnitudeValues;
+    private double last_value_current;
+    private double last_last_value_current;
+
+    private double last_value_magnitude;
+    private double last_last_value_magnitude;
+
+    private DynamicDataDemo current_magnitude_graph;
+    private DynamicDataDemo active_current_graph;
 
     /**
      * Constructor
@@ -23,8 +27,20 @@ public class GetDataFromUnidrive {
      * @throws URISyntaxException
      */
     public GetDataFromUnidrive(String addr) throws URISyntaxException {
-        this.currentValues = new ArrayList<>();
-        this.currentMagnitudeValues = new ArrayList<>();
+        last_last_value_current = 0;
+        last_value_current = 0;
+        last_last_value_magnitude =0;
+        last_value_magnitude = 0;
+
+        active_current_graph = new DynamicDataDemo("Courant actif en fonction du temps", "Temps (s)", "Courant actif (A)");
+        active_current_graph.pack();
+        RefineryUtilities.centerFrameOnScreen(active_current_graph);
+        active_current_graph.setVisible(false);
+
+        current_magnitude_graph = new DynamicDataDemo("Amplitude du courant en fonction du temps", "Temps (s)", "Amplitude du courant (A)");
+        current_magnitude_graph.pack();
+        RefineryUtilities.centerFrameOnScreen(current_magnitude_graph);
+        current_magnitude_graph.setVisible(false);
     }
 
     /**
@@ -35,7 +51,6 @@ public class GetDataFromUnidrive {
     public void displayCurrent() throws IOException {
         final WebClient webClient = new WebClient();
         try {
-
 
             // Get the first page
             final HtmlPage page1 = webClient.getPage("http://192.168.130.182/main/login.htm");
@@ -64,53 +79,38 @@ public class GetDataFromUnidrive {
                 //accessing to the data
                 HtmlPage page_final = webClient.getPage("http://192.168.130.182/US/4/parameters/menu.htm");
 
+                while(last_value_current ==0 && last_last_value_current ==0) {
+                    page_final = webClient.getPage("http://192.168.130.182/US/4/parameters/menu.htm");
+                    HtmlElement active_current = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[7]/td[2]");
+
+                    //updating values
+                    last_last_value_current = last_value_current;
+                    last_value_current = parseCurrent(active_current.getTextContent());
+                }
+
+                current_magnitude_graph.setVisible(true);
+                active_current_graph.setVisible(true);
                 try {
-                    Date date = new Date();
-
-                    //setting graphs
-                    SimpleDateFormat format = new SimpleDateFormat("yyyy\\MM\\dd\\HH_mm_ss");
-                    //SimpleDateFormat format = new SimpleDateFormat("yyyy/MM/dd/HH:mm:ss");
-
-
-                    //setting database;adding records
-                    SimpleDateFormat formatter_date = new SimpleDateFormat("dd-MM-yyyy"); // your template here
-                    SimpleDateFormat formatter_hour = new SimpleDateFormat("HH-mm-ss");
-
-                    ConnectDatabase db = new ConnectDatabase("jdbc:mysql://localhost:3306/cimier?useSSL=false","root","ZUdug@H!");
-
-                    db.addRecords(formatter_date.format(date),formatter_hour.format(date),KindOfData.ACTIVECURRENT);
-                    db.addRecords(formatter_date.format(date),formatter_hour.format(date),KindOfData.CURRENTMAGNITUDE);
-
-                    int id_active = db.getIdOfRecord(formatter_date.format(date),formatter_hour.format(date),KindOfData.ACTIVECURRENT);
-                    int id_magnitude = db.getIdOfRecord(formatter_date.format(date),formatter_hour.format(date),KindOfData.CURRENTMAGNITUDE);
-
                     do {
                         page_final = webClient.getPage("http://192.168.130.182/US/4/parameters/menu.htm");
                         HtmlElement active_current = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[7]/td[2]");
                         HtmlElement current_magnitude = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[5]/td[2]");
 
-                        //writing to list for static graphs
-                        this.currentValues.add(parseCurrent(active_current.getTextContent()));
-                        this.currentMagnitudeValues.add(parseCurrent(current_magnitude.getTextContent()));
+                        //writing to dynamic graph
+                        active_current_graph.setLastValue(parseCurrent(active_current.getTextContent()));
+                        current_magnitude_graph.setLastValue(parseCurrent(current_magnitude.getTextContent()));
 
-                        //feeding database
-                        Date d = new Date();
-                        db.addDatas(id_active,formatter_hour.format(d),parseCurrent(active_current.getTextContent()));
-                        db.addDatas(id_magnitude,formatter_hour.format(d),parseCurrent(current_magnitude.getTextContent()));
+                        //setting values in order to see if we need to stop
+                        last_last_value_current = last_value_current;
+                        last_value_current = parseCurrent(active_current.getTextContent());
+
+                        last_last_value_magnitude = last_value_magnitude;
+                        last_value_magnitude = parseCurrent(current_magnitude.getTextContent());
 
                         //sleeping 1 second
                         Thread.sleep(1000);
                     }
-                    while(!(this.currentMagnitudeValues.size()>1
-                            && this.currentMagnitudeValues.get(currentMagnitudeValues.size()-1)==0
-                            && this.currentMagnitudeValues.get(currentMagnitudeValues.size()-2)!=0 ));
-
-                    System.out.println("RECORDS");
-                    db.accessRecords();
-                    System.out.println("DATAS");
-                    db.accessDatas();
-                    db.closeConnection();
-
+                    while(!(last_value_current==0  && last_value_magnitude==0 && last_last_value_magnitude ==0 && last_last_value_current==0 ));
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                     final HtmlElement button_logout = (HtmlElement) page_final.getElementById("mainnav7");
@@ -137,13 +137,4 @@ public class GetDataFromUnidrive {
     public double parseCurrent(String current) {
         return Double.parseDouble(current.substring(0, current.length() - 1));
     }
-
-    public List<Double> getListCurrent() {
-        return this.currentValues;
-    }
-
-    public List<Double> getListCurrentMagnitude() {
-        return this.currentMagnitudeValues;
-    }
-
 }
