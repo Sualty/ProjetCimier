@@ -76,7 +76,7 @@ public class GetDataFromUnidrive {
                     SimpleDateFormat formatter_date = new SimpleDateFormat("dd-MM-yyyy"); // your template here
                     SimpleDateFormat formatter_hour = new SimpleDateFormat("HH-mm-ss");
 
-                    ConnectDatabase db = new ConnectDatabase("jdbc:mysql://localhost:3306/cimier?useSSL=false","root","ZUdug@H!");
+                    ConnectDatabase db = new ConnectDatabase("jdbc:mysql://localhost:"+Configuration.portDatabase+"/cimier?useSSL=false","root","ZUdug@H!");
 
                     db.addRecords(formatter_date.format(date),formatter_hour.format(date),KindOfData.ACTIVECURRENT);
                     db.addRecords(formatter_date.format(date),formatter_hour.format(date),KindOfData.CURRENTMAGNITUDE);

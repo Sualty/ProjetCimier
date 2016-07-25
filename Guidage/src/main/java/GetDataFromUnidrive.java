@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * This class connects to the Unidrive for reading in real time active current and current magnitude .
  */
-public class GetDataFromUnidrive {
+public class GetDataFromUnidrive extends Thread{
 
     private double last_value_current;
     private double last_last_value_current;
@@ -42,12 +42,19 @@ public class GetDataFromUnidrive {
         current_magnitude_graph.setVisible(false);
     }
 
+    public void run(){
+        try {
+            displayCurrent();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
     /**
      * Connecting using username and password ; then getting the active current each second, while there is no more current .
      *
      * @throws Exception
      */
-    public void displayCurrent() throws IOException {
+    private void displayCurrent() throws IOException {
         final WebClient webClient = new WebClient();
         try {
 
