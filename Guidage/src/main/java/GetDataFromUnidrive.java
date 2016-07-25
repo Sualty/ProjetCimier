@@ -7,7 +7,7 @@ import java.net.URISyntaxException;
 import java.util.List;
 
 /**
- * This class opens a socket for sending a request to the Unidrive SP .
+ * This class connects to the Unidrive for reading in real time active current and current magnitude .
  */
 public class GetDataFromUnidrive {
 
@@ -23,10 +23,9 @@ public class GetDataFromUnidrive {
     /**
      * Constructor
      *
-     * @param addr the URI request
      * @throws URISyntaxException
      */
-    public GetDataFromUnidrive(String addr) throws URISyntaxException {
+    public GetDataFromUnidrive() throws URISyntaxException {
         last_last_value_current = 0;
         last_value_current = 0;
         last_last_value_magnitude =0;
@@ -44,7 +43,7 @@ public class GetDataFromUnidrive {
     }
 
     /**
-     * Connecting using username and password ; then getting the active current each second .
+     * Connecting using username and password ; then getting the active current each second, while there is no more current .
      *
      * @throws Exception
      */
@@ -53,7 +52,7 @@ public class GetDataFromUnidrive {
         try {
 
             // Get the first page
-            final HtmlPage page1 = webClient.getPage("http://192.168.130.182/main/login.htm");
+            final HtmlPage page1 = webClient.getPage("http://"+Configuration.ipUnidrive+"/main/login.htm");
 
             //Connecting using administrator account
             List<HtmlForm> arr = page1.getForms();
@@ -68,8 +67,8 @@ public class GetDataFromUnidrive {
                 }
                 final HtmlElement button = page1.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/form/table/tbody/tr/td/table/tbody/tr[5]/td[2]/table/tbody/tr[2]/td[2]/table/tbody/tr/td[2]/a");
                 if (button != null) {
-                    username.setValueAttribute("root");
-                    password.setValueAttribute("ut72");
+                    username.setValueAttribute(Configuration.login);
+                    password.setValueAttribute(Configuration.password);
                     HtmlPage page2 = button.click();
                     if (page2.getTitleText().equals("Drive Description (root)")) {
                         System.out.println("PERMISSION GRANTED");
@@ -77,10 +76,10 @@ public class GetDataFromUnidrive {
                 }
 
                 //accessing to the data
-                HtmlPage page_final = webClient.getPage("http://192.168.130.182/US/4/parameters/menu.htm");
+                HtmlPage page_final = webClient.getPage("http://"+Configuration.ipUnidrive+"/US/4/parameters/menu.htm");
 
                 while(last_value_current ==0 && last_last_value_current ==0) {
-                    page_final = webClient.getPage("http://192.168.130.182/US/4/parameters/menu.htm");
+                    page_final = webClient.getPage("http://"+Configuration.ipUnidrive+"/US/4/parameters/menu.htm");
                     HtmlElement active_current = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[7]/td[2]");
 
                     //updating values
@@ -92,7 +91,7 @@ public class GetDataFromUnidrive {
                 active_current_graph.setVisible(true);
                 try {
                     do {
-                        page_final = webClient.getPage("http://192.168.130.182/US/4/parameters/menu.htm");
+                        page_final = webClient.getPage("http://"+Configuration.ipUnidrive+"/US/4/parameters/menu.htm");
                         HtmlElement active_current = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[7]/td[2]");
                         HtmlElement current_magnitude = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[5]/td[2]");
 
@@ -126,13 +125,12 @@ public class GetDataFromUnidrive {
 
         } catch (Exception e) {
             e.printStackTrace();
-            HtmlPage page_final = webClient.getPage("http://192.168.130.182/US/4/parameters/menu.htm");
+            HtmlPage page_final = webClient.getPage("http://"+Configuration.ipUnidrive+"/US/4/parameters/menu.htm");
             final HtmlElement button_logout = (HtmlElement) page_final.getElementById("mainnav7");
             HtmlPage page_out = button_logout.click();
             System.out.println(page_out.getTitleText());
         }
     }
-
 
     public double parseCurrent(String current) {
         return Double.parseDouble(current.substring(0, current.length() - 1));
