@@ -13,13 +13,27 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * Class creating a graph and saving it into a JPEG picture .
+ */
 public class DrawGraph extends ApplicationFrame
 {
 
     private JFreeChart lineChart;
-    public DrawGraph( String applicationTitle , String chartTitle, String y_axis,List<Double> valeurs)
+    private File file;
+
+    /**
+     * Contructor ; initialize the graph and the file .
+     * @param applicationTitle
+     * @param chartTitle
+     * @param y_axis
+     * @param valeurs
+     */
+    public DrawGraph(String applicationTitle , String chartTitle, String y_axis, List<Double> valeurs)
     {
         super(applicationTitle);
+
+
         this.lineChart = ChartFactory.createLineChart(
                 chartTitle,
                 "Temps (s)",y_axis,
@@ -30,28 +44,41 @@ public class DrawGraph extends ApplicationFrame
         ChartPanel chartPanel = new ChartPanel( lineChart );
         chartPanel.setPreferredSize( new java.awt.Dimension( 560 , 367 ) );
         setContentPane( chartPanel );
-    }
 
-    public void saveGraph() throws IOException {
         String title = this.lineChart.getTitle().getText();
-        DateFormat dateFormat = new SimpleDateFormat("yyyy\\MM\\dd\\HH_mm_ss");
-        //DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd/HH:mm:ss");  //POUR LINUX
-
-        int width = 640; /* Width of the image */
-        int height = 480; /* Height of the image */
-
-        Date date = new Date();
+        //DateFormat dateFormat = new SimpleDateFormat("yyyy\\MM\\dd\\HH_mm_ss");
+        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd/HH:mm:ss");  //POUR LINUX
 
         if(title.equals("Courant actif dans le moteur en fonction du temps"))
             title = "courant_actif";
         else if (title.equals("Magnitude du courant dans le moteur en fonction du temps"))
             title = "magnitude_courant";
 
-        File file = new File(dateFormat.format(date) +title+ ".jpeg");
+        Date date = new Date();
+
+        file = new File(dateFormat.format(date) +title+ ".jpeg");
         file.getParentFile().mkdirs();
+    }
+
+    /**
+     * Saving the graph into the file
+     * @throws IOException
+     */
+    public void saveGraph() throws IOException {
+
+        int width = 640; /* Width of the image */
+        int height = 480; /* Height of the image */
+
+        String p = file.getAbsolutePath();
+        System.out.println(p);
         ChartUtilities.saveChartAsJPEG(file ,lineChart, width ,height);
     }
 
+    /**
+     * Transforming a list of double values into a dataset (which can be used by the graph)
+     * @param valeurs
+     * @return
+     */
     private DefaultCategoryDataset createDataset( List<Double> valeurs )
     {
         DefaultCategoryDataset dataset = new DefaultCategoryDataset( );

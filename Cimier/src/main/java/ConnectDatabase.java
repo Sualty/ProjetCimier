@@ -3,7 +3,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
 /**
- * Created by Gunsillie on 21/07/2016.
+ * Class used for accessing to the database
  */
 public class ConnectDatabase {
 
@@ -12,11 +12,14 @@ public class ConnectDatabase {
     private String username;
     private String password;
 
-    public ConnectDatabase(String url, String username, String password){
+    /**
+     * Connects to the database
+     */
+    public ConnectDatabase(){
 
-        this.url = url;
-        this.username = username;
-        this.password = password;
+        this.url = "jdbc:mysql://localhost:"+Configuration.portDatabase+"/cimier?useSSL=false";
+        this.username = Configuration.user_bd;
+        this.password = Configuration.password_bd;
 
         try  {
             this.con = DriverManager.getConnection(url, username, password);
@@ -27,6 +30,12 @@ public class ConnectDatabase {
 
     }
 
+    /**
+     * adding a record
+     * @param day_of_year
+     * @param begin_hour
+     * @param kind
+     */
     public void addRecords(String day_of_year,String begin_hour,KindOfData kind) {
         try {
             SimpleDateFormat formatter_date = new SimpleDateFormat("dd-MM-yyyy"); // your template here
@@ -56,6 +65,9 @@ public class ConnectDatabase {
         }
     }
 
+    /**
+     * showing all records
+     */
     public void accessRecords() {
         try {
             Statement st = (Statement) con.createStatement();
@@ -81,6 +93,9 @@ public class ConnectDatabase {
 
     }
 
+    /**
+     * empty table of records
+     */
     public void emptyRecords() {
         try {
             Statement st = (Statement) con.createStatement();
@@ -93,6 +108,13 @@ public class ConnectDatabase {
         }
     }
 
+    /**
+     * get the id (primary key) of a record, given its other parameters
+     * @param day_of_year
+     * @param begin_hour
+     * @param kind
+     * @return
+     */
     public int getIdOfRecord(String day_of_year,String begin_hour,KindOfData kind) {
         int id = -1;
         try {
@@ -124,10 +146,16 @@ public class ConnectDatabase {
         } catch (ParseException e) {
             e.printStackTrace();
         }
-        System.out.println(id);
+
         return id;
     }
 
+    /**
+     * add a data
+     * @param id
+     * @param date
+     * @param val
+     */
     public void addDatas(int id,String date,double val) {
         try {
             SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy"); // your template here
@@ -153,6 +181,9 @@ public class ConnectDatabase {
         }
     }
 
+    /**
+     * empty data table
+     */
     public void emptyDatas() {
         try {
             Statement st = (Statement) con.createStatement();
@@ -165,6 +196,9 @@ public class ConnectDatabase {
         }
     }
 
+    /**
+     * display table of datas
+     */
     public void accessDatas() {
         try {
             Statement st = (Statement) con.createStatement();
@@ -188,6 +222,9 @@ public class ConnectDatabase {
         }
     }
 
+    /**
+     * close connection with BD
+     */
     public void closeConnection () {
         try {
             con.close();

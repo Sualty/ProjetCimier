@@ -1,5 +1,5 @@
 /**
- * Created by blou on 21/07/16.
+ * of datas which can be used
  */
 public enum KindOfData {
 
