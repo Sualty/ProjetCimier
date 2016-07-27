@@ -3,7 +3,6 @@ import com.gargoylesoftware.htmlunit.html.*;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -20,10 +19,9 @@ public class GetDataFromUnidrive extends Thread{
     /**
      * Constructor
      *
-     * @param addr the URI request
      * @throws URISyntaxException
      */
-    public GetDataFromUnidrive(String addr) throws URISyntaxException {
+    public GetDataFromUnidrive() throws URISyntaxException {
         //initialize the lists ; adding 0.0 twice to each list in order to have something to start with in the displayCurrent() method .
         this.currentValues = new ArrayList<>();
         currentValues.add(0.0);currentValues.add(0.0);
@@ -74,19 +72,30 @@ public class GetDataFromUnidrive extends Thread{
                     username.setValueAttribute(Configuration.login);
                     password.setValueAttribute(Configuration.password);
                     HtmlPage page2 = button.click();
-                    if (page2.getTitleText().equals("Drive Description (root)")) {
+                    if (page2.getTitleText().equals("Drive Description ("+Configuration.login+")")) {
                         System.out.println("PERMISSION GRANTED");
                     }
                 }
-
-                //accessing to the data
                 HtmlPage page_final = webClient.getPage("http://"+Configuration.ipUnidrive+"/US/4/parameters/menu.htm");
 
                 try {
-                    Date date = new Date();
-                    //DateFormat dateFormat = new SimpleDateFormat("yyyy\\MM\\dd\\HH_mm_ss");
-                    DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd/HH:mm:ss");  //POUR LINUX
+                    //the Shutdown Hook will disconnect the program from the Unidrive if something bad happens.
+                    final HtmlPage p = page_final;
+                    Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+                        public void run() {
 
+                            HtmlElement button_logout = (HtmlElement) p.getElementById("mainnav7");
+                            HtmlPage page_out = null;
+                            try {
+                                page_out = button_logout.click();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            System.out.println(page_out.getTitleText());
+                        }
+                    }, "Shutdown-thread"));
+
+                    Date date = new Date();
 
                     //setting database;adding records
                     SimpleDateFormat formatter_date = new SimpleDateFormat("dd-MM-yyyy"); // your template here
@@ -94,50 +103,59 @@ public class GetDataFromUnidrive extends Thread{
 
                     ConnectDatabase db = new ConnectDatabase();
 
-                    db.addRecords(formatter_date.format(date),formatter_hour.format(date),KindOfData.ACTIVECURRENT);
-                    db.addRecords(formatter_date.format(date),formatter_hour.format(date),KindOfData.CURRENTMAGNITUDE);
 
-                    int id_active = db.getIdOfRecord(formatter_date.format(date),formatter_hour.format(date),KindOfData.ACTIVECURRENT);
-                    int id_magnitude = db.getIdOfRecord(formatter_date.format(date),formatter_hour.format(date),KindOfData.CURRENTMAGNITUDE);
+                    while(true) {
+                        //waiting for not zero current values
+                        while (this.currentMagnitudeValues.get(currentMagnitudeValues.size() - 1) == 0
+                                && this.currentValues.get(currentValues.size() - 1) == 0) {
+                            page_final = webClient.getPage("http://" + Configuration.ipUnidrive + "/US/4/parameters/menu.htm");
+                            HtmlElement active_current = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[7]/td[2]");
+                            HtmlElement current_magnitude = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[5]/td[2]");
 
-                    //waiting not zero current values
-                    while(this.currentMagnitudeValues.get(currentMagnitudeValues.size()-1)==0
-                            && this.currentValues.get(currentValues.size()-1)==0) {
-                        page_final = webClient.getPage("http://"+Configuration.ipUnidrive+"/US/4/parameters/menu.htm");
-                        HtmlElement active_current = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[7]/td[2]");
-                        HtmlElement current_magnitude = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[5]/td[2]");
-
-                        double ac = parseCurrent(active_current.getTextContent());
-                        double cm = parseCurrent(current_magnitude.getTextContent());
-                        //writing to list for static graphs
-                        if(ac!=0.0 && cm!=0.0) {
-                            this.currentValues.add(parseCurrent(active_current.getTextContent()));
-                            this.currentMagnitudeValues.add(parseCurrent(current_magnitude.getTextContent()));
+                            double ac = parseCurrent(active_current.getTextContent());
+                            double cm = parseCurrent(current_magnitude.getTextContent());
+                            //writing to list for static graphs
+                            if (ac != 0.0 && cm != 0.0) {
+                                this.currentValues.add(parseCurrent(active_current.getTextContent()));
+                                this.currentMagnitudeValues.add(parseCurrent(current_magnitude.getTextContent()));
+                            }
                         }
+
+
+                        //adding records to Database
+                        db.addRecords(formatter_date.format(date), formatter_hour.format(date), KindOfData.ACTIVECURRENT);
+                        db.addRecords(formatter_date.format(date), formatter_hour.format(date), KindOfData.CURRENTMAGNITUDE);
+
+                        int id_active = db.getIdOfRecord(formatter_date.format(date), formatter_hour.format(date), KindOfData.ACTIVECURRENT);
+                        int id_magnitude = db.getIdOfRecord(formatter_date.format(date), formatter_hour.format(date), KindOfData.CURRENTMAGNITUDE);
+
+
+                        //here comes the serious stuff
+                        do {
+                            page_final = webClient.getPage("http://" + Configuration.ipUnidrive + "/US/4/parameters/menu.htm");
+                            HtmlElement active_current = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[7]/td[2]");
+                            HtmlElement current_magnitude = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[5]/td[2]");
+
+                            double ac = parseCurrent(active_current.getTextContent());
+                            double cm = parseCurrent(current_magnitude.getTextContent());
+
+                            //writing to list
+                            this.currentValues.add(ac);
+                            this.currentMagnitudeValues.add(cm);
+
+                            //feeding database
+                            Date d = new Date();
+                            db.addDatas(id_active, formatter_hour.format(d), ac);
+                            db.addDatas(id_magnitude, formatter_hour.format(d), cm);
+
+                            //sleeping 1 second
+                            Thread.sleep(1000);
+                        }
+                        while (!(this.currentMagnitudeValues.get(currentMagnitudeValues.size() - 1) == 0
+                                && this.currentMagnitudeValues.get(currentMagnitudeValues.size() - 2) == 0
+                                && this.currentValues.get(currentValues.size() - 1) == 0
+                                && this.currentValues.get(currentValues.size() - 2) == 0));
                     }
-
-                    //here comes the serious stuff
-                    do {
-                        page_final = webClient.getPage("http://"+Configuration.ipUnidrive+"/US/4/parameters/menu.htm");
-                        HtmlElement active_current = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[7]/td[2]");
-                        HtmlElement current_magnitude = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[5]/td[2]");
-
-                        //writing to list
-                        this.currentValues.add(parseCurrent(active_current.getTextContent()));
-                        this.currentMagnitudeValues.add(parseCurrent(current_magnitude.getTextContent()));
-
-                        //feeding database
-                        Date d = new Date();
-                        db.addDatas(id_active,formatter_hour.format(d),parseCurrent(active_current.getTextContent()));
-                        db.addDatas(id_magnitude,formatter_hour.format(d),parseCurrent(current_magnitude.getTextContent()));
-
-                        //sleeping 1 second
-                        Thread.sleep(1000);
-                    }
-                    while(!(this.currentMagnitudeValues.get(currentMagnitudeValues.size()-1)==0
-                            && this.currentMagnitudeValues.get(currentMagnitudeValues.size()-2)==0
-                            && this.currentValues.get(currentValues.size()-1)==0
-                            && this.currentValues.get(currentValues.size()-2)==0));
 
                 } catch (InterruptedException e) {
                     e.printStackTrace();

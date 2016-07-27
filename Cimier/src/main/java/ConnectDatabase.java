@@ -17,7 +17,7 @@ public class ConnectDatabase {
      */
     public ConnectDatabase(){
 
-        this.url = "jdbc:mysql://localhost:"+Configuration.portDatabase+"/cimier?useSSL=false";
+        this.url = "jdbc:mysql://192.168.132.148:"+Configuration.portDatabase+"/cimier?useSSL=false";
         this.username = Configuration.user_bd;
         this.password = Configuration.password_bd;
 

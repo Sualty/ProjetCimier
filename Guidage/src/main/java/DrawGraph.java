@@ -46,8 +46,7 @@ public class DrawGraph extends ApplicationFrame
         setContentPane( chartPanel );
 
         String title = this.lineChart.getTitle().getText();
-        //DateFormat dateFormat = new SimpleDateFormat("yyyy\\MM\\dd\\HH_mm_ss");
-        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd/HH:mm:ss");  //POUR LINUX
+        DateFormat dateFormat = new SimpleDateFormat(Configuration.dateFormatString);
 
         if(title.equals("Courant actif dans le moteur en fonction du temps"))
             title = "courant_actif";

@@ -99,7 +99,6 @@ public class DynamicDataDemo extends ApplicationFrame implements ActionListener 
 
         ValueAxis yaxis = plot.getRangeAxis();
         yaxis.setAutoRange(true);
-
         return result;
     }
 

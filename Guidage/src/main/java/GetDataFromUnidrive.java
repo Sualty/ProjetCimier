@@ -24,10 +24,9 @@ public class GetDataFromUnidrive extends Thread{
     /**
      * Constructor
      *
-     * @param addr the URI request
      * @throws URISyntaxException
      */
-    public GetDataFromUnidrive(String addr) throws URISyntaxException {
+    public GetDataFromUnidrive() throws URISyntaxException {
         //initialize the lists ; adding 0.0 twice to each list in order to have something to start with in the displayCurrent() method .
         this.currentValues = new ArrayList<>();
         currentValues.add(0.0);currentValues.add(0.0);
@@ -49,6 +48,7 @@ public class GetDataFromUnidrive extends Thread{
             e.printStackTrace();
         }
     }
+
     /**
      * Connecting using username and password ; then getting the active current and the current magnitude each second .
      *
@@ -57,7 +57,6 @@ public class GetDataFromUnidrive extends Thread{
     public void displayCurrent() throws IOException, InterruptedException {
         final WebClient webClient = new WebClient();
         try {
-
 
             // Get the first page
             final HtmlPage page1 = webClient.getPage("http://"+Configuration.ipUnidrive+"/main/login.htm");
@@ -78,66 +77,109 @@ public class GetDataFromUnidrive extends Thread{
                     username.setValueAttribute(Configuration.login);
                     password.setValueAttribute(Configuration.password);
                     HtmlPage page2 = button.click();
-                    if (page2.getTitleText().equals("Drive Description (root)")) {
+                    if (page2.getTitleText().equals("Drive Description ("+Configuration.login+")")) {
                         System.out.println("PERMISSION GRANTED");
                     }
                 }
-
-                //accessing to the data
                 HtmlPage page_final = webClient.getPage("http://"+Configuration.ipUnidrive+"/US/4/parameters/menu.htm");
 
                 try {
-                    Date date = new Date();
-                    //DateFormat dateFormat = new SimpleDateFormat("yyyy\\MM\\dd\\HH_mm_ss");
-                    DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd/HH:mm:ss");  //POUR LINUX
 
-                    //init csv writer
-                    File file = new File(dateFormat.format(date)+".csv");
-                    file.getParentFile().mkdirs();
-                    CSVWriter writer = new CSVWriter(new FileWriter(file), '\t');
+                    //the Shutdown Hook will disconnect the program from the Unidrive if something bad happens.
+                    final HtmlPage p = page_final;
+                    Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+                        public void run() {
 
-                    // feed in your array (or convert your data to an array)
-                    String[] entries = "Date#Active current#Current magnitude".split("#");
-                    writer.writeNext(entries);
-
-                    //waiting not zero current values
-                    while(this.currentMagnitudeValues.get(currentMagnitudeValues.size()-1)==0
-                            && this.currentValues.get(currentValues.size()-1)==0) {
-                        page_final = webClient.getPage("http://"+Configuration.ipUnidrive+"/US/4/parameters/menu.htm");
-                        HtmlElement active_current = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[7]/td[2]");
-                        HtmlElement current_magnitude = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[5]/td[2]");
-
-                        double ac = parseCurrent(active_current.getTextContent());
-                        double cm = parseCurrent(current_magnitude.getTextContent());
-                        //writing to list for static graphs
-                        if(ac!=0.0 && cm!=0.0) {
-                            this.currentValues.add(parseCurrent(active_current.getTextContent()));
-                            this.currentMagnitudeValues.add(parseCurrent(current_magnitude.getTextContent()));
+                            HtmlElement button_logout = (HtmlElement) p.getElementById("mainnav7");
+                            HtmlPage page_out = null;
+                            try {
+                                page_out = button_logout.click();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            System.out.println(page_out.getTitleText());
                         }
+                    }, "Shutdown-thread"));
+
+                    DynamicDataDemo active_current_graph = new DynamicDataDemo("Courant actif en fonction du temps", "Temps (s)", "Courant actif (A)");
+                    DynamicDataDemo current_magnitude_graph = new DynamicDataDemo("Amplitude du courant en fonction du temps", "Temps (s)", "Amplitude du courant (A)");
+
+                    while(true) {
+                        Date date = new Date();
+                        DateFormat dateFormat = new SimpleDateFormat(Configuration.dateFormatString);
+
+                        //creating dynamic graphs
+                        active_current_graph = new DynamicDataDemo("Courant actif en fonction du temps", "Temps (s)", "Courant actif (A)");
+                        active_current_graph.pack();
+                        RefineryUtilities.centerFrameOnScreen(active_current_graph);
+
+                        current_magnitude_graph = new DynamicDataDemo("Amplitude du courant en fonction du temps", "Temps (s)", "Amplitude du courant (A)");
+                        current_magnitude_graph.pack();
+                        RefineryUtilities.centerFrameOnScreen(current_magnitude_graph);
+
+                        //waiting not zero current values
+                        while (this.currentMagnitudeValues.get(currentMagnitudeValues.size() - 1) == 0
+                                && this.currentValues.get(currentValues.size() - 1) == 0) {
+                            page_final = webClient.getPage("http://" + Configuration.ipUnidrive + "/US/4/parameters/menu.htm");
+                            HtmlElement active_current = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[7]/td[2]");
+                            HtmlElement current_magnitude = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[5]/td[2]");
+
+                            double ac = parseCurrent(active_current.getTextContent());
+                            double cm = parseCurrent(current_magnitude.getTextContent());
+                            //writing to list for static graphs
+                            if (ac != 0.0 && cm != 0.0) {
+                                this.currentValues.add(ac);
+                                this.currentMagnitudeValues.add(cm);
+                                active_current_graph.setLastValue(ac);
+                                current_magnitude_graph.setLastValue(cm);
+                                active_current_graph.setVisible(true);
+                                current_magnitude_graph.setVisible(true);
+                            }
+                        }
+
+                        //init csv writer
+                        File file = new File(dateFormat.format(date) + ".csv");
+                        System.out.println(file.getAbsolutePath());
+                        file.getParentFile().mkdirs();
+                        CSVWriter writer = new CSVWriter(new FileWriter(dateFormat.format(date) + ".csv"), '\t');
+
+                        // feed in your array (or convert your data to an array)
+                        String[] entries = "Date#Active current#Current magnitude".split("#");
+                        writer.writeNext(entries);
+
+                        //here comes the serious stuff
+                        do {
+                            page_final = webClient.getPage("http://" + Configuration.ipUnidrive + "/US/4/parameters/menu.htm");
+                            HtmlElement active_current = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[7]/td[2]");
+                            HtmlElement current_magnitude = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[5]/td[2]");
+
+                            double ac = parseCurrent(active_current.getTextContent());
+                            double cm = parseCurrent(current_magnitude.getTextContent());
+
+                            //writing to list for static graphs
+                            this.currentValues.add(ac);
+                            this.currentMagnitudeValues.add(cm);
+
+                            //writing in .csv log file
+                            String s = date.toString() + "#" + ac + "#" + cm;
+                            String[] data = s.split("#");
+                            writer.writeNext(data);
+
+                            //writing to rt graphs
+                            current_magnitude_graph.setLastValue(cm);
+                            active_current_graph.setLastValue(ac);
+
+                            //sleeping 1 second
+                            Thread.sleep(1000);
+                        }
+
+                        while (!(this.currentMagnitudeValues.get(currentMagnitudeValues.size() - 1) == 0
+                                && this.currentMagnitudeValues.get(currentMagnitudeValues.size() - 2) == 0
+                                && this.currentValues.get(currentValues.size() - 1) == 0
+                                && this.currentValues.get(currentValues.size() - 2) == 0));
+
+                        writer.close();
                     }
-
-                    //here comes the serious stuff
-                    do {
-                        page_final = webClient.getPage("http://"+Configuration.ipUnidrive+"/US/4/parameters/menu.htm");
-                        HtmlElement active_current = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[7]/td[2]");
-                        HtmlElement current_magnitude = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[5]/td[2]");
-
-                        //writing to list for static graphs
-                        this.currentValues.add(parseCurrent(active_current.getTextContent()));
-                        this.currentMagnitudeValues.add(parseCurrent(current_magnitude.getTextContent()));
-
-                        //writing in .csv log file
-                        String s = date.toString()+"#"+parseCurrent(active_current.getTextContent())+"#"+parseCurrent(current_magnitude.getTextContent());
-                        String[] data = s.split("#");
-                        writer.writeNext(data);
-                        //sleeping 1 second
-                        Thread.sleep(1000);
-                    }
-                    while(!(this.currentMagnitudeValues.get(currentMagnitudeValues.size()-1)==0
-                            && this.currentMagnitudeValues.get(currentMagnitudeValues.size()-2)==0
-                            && this.currentValues.get(currentValues.size()-1)==0
-                            && this.currentValues.get(currentValues.size()-2)==0));
-
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                     final HtmlElement button_logout = (HtmlElement) page_final.getElementById("mainnav7");

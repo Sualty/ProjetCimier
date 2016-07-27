@@ -14,4 +14,7 @@ public class Configuration {
     public static String user_bd = "root";
     //Pasword for connecting to the database
     public static String password_bd = "ZUdug@H!";
+    //String which defines format of log files
+    public static String dateFormatString = "yyyy/MM/dd/HH:mm:ss";
+    //public static String dateFormatString = "yyyy\\MM\\dd\\HH_mm_ss";
 }
