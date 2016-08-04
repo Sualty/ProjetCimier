@@ -105,6 +105,9 @@ public class GetDataFromUnidrive extends Thread{
 
 
                     while(true) {
+                        if(db.isConnected()==false) {
+                            db = new ConnectDatabase();
+                        }
                         //waiting for not zero current values
                         while (this.currentMagnitudeValues.get(currentMagnitudeValues.size() - 1) == 0
                                 && this.currentValues.get(currentValues.size() - 1) == 0) {
@@ -132,6 +135,9 @@ public class GetDataFromUnidrive extends Thread{
 
                         //here comes the serious stuff
                         do {
+                            if(db.isConnected()==false) {
+                                db = new ConnectDatabase();
+                            }
                             page_final = webClient.getPage("http://" + Configuration.ipUnidrive + "/US/4/parameters/menu.htm");
                             HtmlElement active_current = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[7]/td[2]");
                             HtmlElement current_magnitude = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[5]/td[2]");
@@ -155,6 +161,28 @@ public class GetDataFromUnidrive extends Thread{
                                 && this.currentMagnitudeValues.get(currentMagnitudeValues.size() - 2) == 0
                                 && this.currentValues.get(currentValues.size() - 1) == 0
                                 && this.currentValues.get(currentValues.size() - 2) == 0));
+
+
+                        for(int i=0;i<4;i++) {
+                            page_final = webClient.getPage("http://" + Configuration.ipUnidrive + "/US/4/parameters/menu.htm");
+                            HtmlElement active_current = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[7]/td[2]");
+                            HtmlElement current_magnitude = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[5]/td[2]");
+
+                            double ac = parseCurrent(active_current.getTextContent());
+                            double cm = parseCurrent(current_magnitude.getTextContent());
+
+                            //writing to list
+                            this.currentValues.add(ac);
+                            this.currentMagnitudeValues.add(cm);
+
+                            //feeding database
+                            Date d = new Date();
+                            db.addDatas(id_active, formatter_hour.format(d), ac);
+                            db.addDatas(id_magnitude, formatter_hour.format(d), cm);
+
+                            //sleeping 1 second
+                            Thread.sleep(1000);
+                        }
                     }
 
                 } catch (InterruptedException e) {

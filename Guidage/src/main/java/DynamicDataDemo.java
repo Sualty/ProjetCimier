@@ -36,6 +36,9 @@ public class DynamicDataDemo extends ApplicationFrame implements ActionListener 
     public DynamicDataDemo(final String title, String titleX, String titleY) {
 
         super(title);
+
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
         this.series = new TimeSeries("Intensité", Millisecond.class);
         final TimeSeriesCollection dataset = new TimeSeriesCollection(this.series);
         final JFreeChart chart = createChart(dataset, title, titleX, titleY);
@@ -45,8 +48,10 @@ public class DynamicDataDemo extends ApplicationFrame implements ActionListener 
         //Sets background color of chart
         chart.setBackgroundPaint(Color.LIGHT_GRAY);
 
+        this.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+
         //Created JPanel to show graph on screen
-        final JPanel content = new JPanel(new BorderLayout());
+        JPanel content = new JPanel(new BorderLayout());
 
         //Created Chartpanel for chart area
         final ChartPanel chartPanel = new ChartPanel(chart);
@@ -63,6 +68,7 @@ public class DynamicDataDemo extends ApplicationFrame implements ActionListener 
         timer.start();
 
     }
+
 
     /**
      * Creates a sample chart.

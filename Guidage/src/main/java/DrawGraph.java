@@ -6,6 +6,7 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.ui.ApplicationFrame;
 
+import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
@@ -33,6 +34,7 @@ public class DrawGraph extends ApplicationFrame
     {
         super(applicationTitle);
 
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
         this.lineChart = ChartFactory.createLineChart(
                 chartTitle,
@@ -50,7 +52,7 @@ public class DrawGraph extends ApplicationFrame
 
         if(title.equals("Courant actif dans le moteur en fonction du temps"))
             title = "courant_actif";
-        else if (title.equals("Magnitude du courant dans le moteur en fonction du temps"))
+        else if (title.equals("Amplitude du courant dans le moteur en fonction du temps"))
             title = "magnitude_courant";
 
         Date date = new Date();

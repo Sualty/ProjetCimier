@@ -101,19 +101,19 @@ public class GetDataFromUnidrive extends Thread{
                         }
                     }, "Shutdown-thread"));
 
-                    DynamicDataDemo active_current_graph = new DynamicDataDemo("Courant actif en fonction du temps", "Temps (s)", "Courant actif (A)");
-                    DynamicDataDemo current_magnitude_graph = new DynamicDataDemo("Amplitude du courant en fonction du temps", "Temps (s)", "Amplitude du courant (A)");
+
 
                     while(true) {
+
                         Date date = new Date();
                         DateFormat dateFormat = new SimpleDateFormat(Configuration.dateFormatString);
 
                         //creating dynamic graphs
-                        active_current_graph = new DynamicDataDemo("Courant actif en fonction du temps", "Temps (s)", "Courant actif (A)");
+                        DynamicDataDemo active_current_graph = new DynamicDataDemo("Courant actif en fonction du temps", "Temps (s)", "Courant actif (A)");
                         active_current_graph.pack();
                         RefineryUtilities.centerFrameOnScreen(active_current_graph);
 
-                        current_magnitude_graph = new DynamicDataDemo("Amplitude du courant en fonction du temps", "Temps (s)", "Amplitude du courant (A)");
+                        DynamicDataDemo current_magnitude_graph = new DynamicDataDemo("Amplitude du courant en fonction du temps", "Temps (s)", "Amplitude du courant (A)");
                         current_magnitude_graph.pack();
                         RefineryUtilities.centerFrameOnScreen(current_magnitude_graph);
 
@@ -137,11 +137,11 @@ public class GetDataFromUnidrive extends Thread{
                             }
                         }
 
-                        //init csv writer
-                        File file = new File(dateFormat.format(date) + ".csv");
+                        //init txt writer
+                        File file = new File(dateFormat.format(date) + ".txt");
                         System.out.println(file.getAbsolutePath());
                         file.getParentFile().mkdirs();
-                        CSVWriter writer = new CSVWriter(new FileWriter(dateFormat.format(date) + ".csv"), '\t');
+                        CSVWriter writer = new CSVWriter(new FileWriter(dateFormat.format(date) + ".txt"), '\t');
 
                         // feed in your array (or convert your data to an array)
                         String[] entries = "Date#Active current#Current magnitude".split("#");
@@ -162,6 +162,7 @@ public class GetDataFromUnidrive extends Thread{
 
                             //writing in .csv log file
                             String s = date.toString() + "#" + ac + "#" + cm;
+                            s.replace('.',',');
                             String[] data = s.split("#");
                             writer.writeNext(data);
 
@@ -178,7 +179,60 @@ public class GetDataFromUnidrive extends Thread{
                                 && this.currentValues.get(currentValues.size() - 1) == 0
                                 && this.currentValues.get(currentValues.size() - 2) == 0));
 
+                        //wait 5 seconds still
+                        for(int i=0;i<=4;i++) {
+                            page_final = webClient.getPage("http://" + Configuration.ipUnidrive + "/US/4/parameters/menu.htm");
+                            HtmlElement active_current = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[7]/td[2]");
+                            HtmlElement current_magnitude = page_final.getBody().getFirstByXPath("/html/body/table/tbody/tr[1]/td/table[9]/tbody/tr/td/table/tbody/tr/td[3]/table/tbody/tr/td/table/tbody/tr[5]/td[2]");
+
+                            double ac = parseCurrent(active_current.getTextContent());
+                            double cm = parseCurrent(current_magnitude.getTextContent());
+
+                            //writing to list for static graphs
+                            this.currentValues.add(ac);
+                            this.currentMagnitudeValues.add(cm);
+
+                            //writing in .csv log file
+                            String s = date.toString() + "#" + ac + "#" + cm;
+                            s.replace('.',',');
+                            String[] data = s.split("#");
+                            writer.writeNext(data);
+
+                            //writing to rt graphs
+                            current_magnitude_graph.setLastValue(cm);
+                            active_current_graph.setLastValue(ac);
+
+                            //sleeping 1 second
+                            Thread.sleep(1000);
+                        }
+
                         writer.close();
+
+                        Thread savegraphs = new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                System.out.println("length current"+currentValues.size());
+                                DrawGraph graphe = new DrawGraph("Courant actif", "Courant actif dans le moteur en fonction du temps", "Courant actif (A)", currentValues);
+                                graphe.pack();
+                                RefineryUtilities.centerFrameOnScreen(graphe);
+                                graphe.setVisible(true);
+
+                                System.out.println("length magnitude current"+currentMagnitudeValues.size());
+                                DrawGraph graphe2 = new DrawGraph("Amplitude du courant", "Amplitude du courant dans le moteur en fonction du temps", "Amplitude du courant (A)", currentMagnitudeValues);
+                                graphe2.pack();
+                                RefineryUtilities.centerFrameOnScreen(graphe2);
+                                graphe2.setVisible(true);
+
+                                try {
+                                    graphe.saveGraph();
+                                    graphe2.saveGraph();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        });
+                        savegraphs.start();
+                        savegraphs.join();
                     }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -201,32 +255,6 @@ public class GetDataFromUnidrive extends Thread{
             HtmlPage page_out = button_logout.click();
             System.out.println(page_out.getTitleText());
         }
-
-        Thread savegraphs = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                System.out.println("length current"+currentValues.size());
-                DrawGraph graphe = new DrawGraph("Courant actif", "Courant actif dans le moteur en fonction du temps", "Courant actif (A)", currentValues);
-                graphe.pack();
-                RefineryUtilities.centerFrameOnScreen(graphe);
-                graphe.setVisible(true);
-
-                System.out.println("length magnitude current"+currentMagnitudeValues.size());
-                DrawGraph graphe2 = new DrawGraph("Magnitude Current", "Magnitude du courant dans le moteur en fonction du temps", "Magnitude du courant (A)", currentMagnitudeValues);
-                graphe2.pack();
-                RefineryUtilities.centerFrameOnScreen(graphe2);
-                graphe2.setVisible(true);
-
-                try {
-                    graphe.saveGraph();
-                    graphe2.saveGraph();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-        savegraphs.start();
-        savegraphs.join();
     }
 
     /**

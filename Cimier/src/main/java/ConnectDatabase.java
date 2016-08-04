@@ -17,17 +17,25 @@ public class ConnectDatabase {
      */
     public ConnectDatabase(){
 
-        this.url = "jdbc:mysql://192.168.132.148:"+Configuration.portDatabase+"/cimier?useSSL=false";
+        this.url = "jdbc:mysql://"+Configuration.ipCimier+":"+Configuration.portDatabase+"/cimier?useSSL=false";
         this.username = Configuration.user_bd;
         this.password = Configuration.password_bd;
 
-        try  {
-            this.con = DriverManager.getConnection(url, username, password);
-            System.out.println("Database connected!");
-        } catch (SQLException e) {
-            throw new IllegalStateException("Cannot connect the database!", e);
+        boolean connected = false;
+        while(!connected) {
+            try  {
+                Thread.sleep(10000);
+                this.con = DriverManager.getConnection(url, username, password);
+                System.out.println("Database connected!");
+                connected = true;
+            }
+            catch (SQLException e) {
+                //do nothing, juste pass the exception.
+            }
+            catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
-
     }
 
     /**
@@ -230,6 +238,14 @@ public class ConnectDatabase {
             con.close();
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+    }
+
+    public boolean isConnected() {
+        try {
+            return this.con.isValid(0);
+        } catch (SQLException e) {
+            return false;
         }
     }
 }
