@@ -1,7 +1,7 @@
 
 package controleur;
 
-import modele.DynamicDataDemo;
+import vueV2.AcquisitionTab;
 
 import java.io.IOException;
 import java.util.List;
@@ -21,16 +21,16 @@ public class AcquisitionControleur {
     /**
      * reads values on the unidrive in real time and display on real time graphs
      * @param nb_mesures
-     * @param actif_graphe
-     * @param amplitude_graphe
      * @return the log file
      */
-    public String lancerAcquisition(int nb_mesures, DynamicDataDemo actif_graphe, DynamicDataDemo amplitude_graphe) throws IOException {
-        this.isActive = true;
-        actif_graphe.startGraph();
-        amplitude_graphe.startGraph();
+    public String lancerAcquisition(int nb_mesures, AcquisitionTab vue) throws IOException {
+        vue.startGraphs();
+  /*      this.isActive = true;
+        vue.startGraphs();
+        this.currentMagnitudeValues = new ArrayList<>();
+        this.currentValues = new ArrayList<>();
 
-   /*     //connecting to the Unidrive
+        //connecting to the Unidrive
 
         final WebClient webClient = new WebClient();
         HtmlPage page_final = webClient.getPage("http://" + Configuration.ipUnidrive + "/US/4/parameters/menu.htm");
@@ -76,8 +76,7 @@ public class AcquisitionControleur {
                 }, "Shutdown-thread"));
 
                 //initialize dynamic graphs
-                DynamicDataDemo active_current_graph = new DynamicDataDemo("Courant actif en fonction du temps", "Temps (s)", "Courant actif (A)");
-                DynamicDataDemo current_magnitude_graph = new DynamicDataDemo("Amplitude du courant en fonction du temps", "Temps (s)", "Amplitude du courant (A)");
+                vue.initGraphs();
 
                 do {
                     page_final = webClient.getPage("http://" + Configuration.ipUnidrive + "/US/4/parameters/menu.htm");
@@ -92,8 +91,8 @@ public class AcquisitionControleur {
                     this.currentMagnitudeValues.add(cm);
 
                     //writing to rt graphs
-                    current_magnitude_graph.setLastValue(cm);
-                    active_current_graph.setLastValue(ac);
+                    vue.modifierActifGraphe(ac);
+                    vue.modifierAmplitudeGraphe(cm);
 
                     //sleeping 1 second
                     Thread.sleep(1000/nb_mesures);//ne s'arrête jamais...nyényényé
@@ -116,16 +115,20 @@ public class AcquisitionControleur {
         final HtmlElement button_logout = (HtmlElement) page_final.getElementById("mainnav7");
         HtmlPage page_out = button_logout.click();
         System.out.println(page_out.getTitleText());
-*/
+
    while(isActive) {
        System.out.println();
    }
         //stopping graphs
-        actif_graphe.stopGraph();
-        amplitude_graphe.stopGraph();
+
 
         //returning log string
-        return "log has been updated";
+        String result_string="";
+        for(int i=0;i<this.currentMagnitudeValues.size();i++) {
+            result_string = result_string+"Courant actif : "+this.currentValues.get(i)+ "Amplitude du courant : "+this.currentMagnitudeValues.get(i)+"\n";
+        }
+        return result_string;*/
+  return "log has been updated";
     }
 
 

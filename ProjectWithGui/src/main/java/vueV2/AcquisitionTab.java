@@ -154,7 +154,7 @@ public class AcquisitionTab extends JPanel{
                             forcage_acq.setText("Arrêter manuellement l'acquisition");
                             String s = null;
                             try {
-                                s = acquisitionControleur.lancerAcquisition(nb_mesure,actif_graphe,amplitude_graphe);
+                                s = acquisitionControleur.lancerAcquisition(nb_mesure,returnGui());
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
@@ -169,5 +169,32 @@ public class AcquisitionTab extends JPanel{
                 }
             }
         });
+    }
+
+    public void modifierActifGraphe(double value) {
+        this.actif_graphe.setLastValue(value);
+    }
+
+    public void modifierAmplitudeGraphe(double value) {
+        this.amplitude_graphe.setLastValue(value);
+    }
+
+    public void startGraphs() {
+        this.actif_graphe.startGraph();
+        this.amplitude_graphe.startGraph();
+    }
+
+    public AcquisitionTab returnGui() {
+        return this;
+    }
+
+    public void initGraphs() {
+        this.actif_graphe = new DynamicDataDemo("blou", "Temps (s)", "Courant actif (A)");
+        this.amplitude_graphe = new DynamicDataDemo("Amplitude du courant en fonction du temps", "Temps (s)", "Amplitude du courant (A)");
+    }
+
+    public void stopGraphs() {
+        this.amplitude_graphe.stopGraph();
+        this.actif_graphe.stopGraph();
     }
 }

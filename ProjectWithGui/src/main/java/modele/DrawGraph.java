@@ -1,81 +1,61 @@
 package modele;
 
-import modele.configuration.Configuration;
+import controleur.KindOfData;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
-import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.data.category.DefaultCategoryDataset;
-import org.jfree.ui.ApplicationFrame;
+import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 
 import javax.swing.*;
-import java.io.File;
-import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
+import java.util.ArrayList;
 
 /**
  * Class creating a graph and saving it into a JPEG picture .
  */
-public class DrawGraph extends ApplicationFrame
-{
+public class DrawGraph extends JPanel {
 
     private JFreeChart lineChart;
-    private File file;
 
-    /**
-     * Contructor ; initialize the graph and the file .
-     * @param applicationTitle
-     * @param chartTitle
-     * @param y_axis
-     * @param valeurs
-     */
-    public DrawGraph(String applicationTitle , String chartTitle, String y_axis, List<Double> valeurs)
-    {
-        super(applicationTitle);
-
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-
-        this.lineChart = ChartFactory.createLineChart(
+    public DrawGraph(String chartTitle,String y_axis) {
+        super();
+        final XYDataset dataset = new XYSeriesCollection();
+        this.lineChart = ChartFactory.createXYLineChart(
                 chartTitle,
                 "Temps (s)",y_axis,
-                createDataset(valeurs),
+                dataset,
                 PlotOrientation.VERTICAL,
                 true,true,false);
 
         ChartPanel chartPanel = new ChartPanel( lineChart );
-        chartPanel.setPreferredSize( new java.awt.Dimension( 560 , 367 ) );
-        setContentPane( chartPanel );
+        chartPanel.setPreferredSize( new java.awt.Dimension( 460 , 340 ) );
 
-        String title = this.lineChart.getTitle().getText();
-        DateFormat dateFormat = new SimpleDateFormat(Configuration.dateFormatString);
-
-        if(title.equals("Courant actif dans le moteur en fonction du temps"))
-            title = "courant_actif";
-        else if (title.equals("Amplitude du courant dans le moteur en fonction du temps"))
-            title = "magnitude_courant";
-
-        Date date = new Date();
-
-        file = new File(dateFormat.format(date) +title+ ".jpeg");
-        file.getParentFile().mkdirs();
+        this.add(chartPanel);
     }
 
     /**
-     * Saving the graph into the file
-     * @throws IOException
+     * Contructor ; initialize the graph and the file .
+     * @param chartTitle
+     * @param y_axis
+     * @param valeurs
      */
-    public void saveGraph() throws IOException {
+    public DrawGraph(String chartTitle, String y_axis, ArrayList<ResultatRecherche> valeurs,KindOfData kindOfData)
+    {
+        super();
+        final XYDataset dataset = createDataset(valeurs,kindOfData);
+        this.lineChart = ChartFactory.createXYLineChart(
+                chartTitle,
+                "Temps (s)",y_axis,
+                dataset,
+                PlotOrientation.VERTICAL,
+                true,true,false);
 
-        int width = 640; /* Width of the image */
-        int height = 480; /* Height of the image */
+        ChartPanel chartPanel = new ChartPanel( lineChart );
+        chartPanel.setPreferredSize( new java.awt.Dimension( 460 , 340 ) );
 
-        String p = file.getAbsolutePath();
-        System.out.println(p);
-        ChartUtilities.saveChartAsJPEG(file ,lineChart, width ,height);
+        this.add(chartPanel);
     }
 
     /**
@@ -83,12 +63,27 @@ public class DrawGraph extends ApplicationFrame
      * @param valeurs
      * @return
      */
-    private DefaultCategoryDataset createDataset( List<Double> valeurs )
+    private XYDataset createDataset(ArrayList<ResultatRecherche> valeurs, KindOfData kindOfData)
     {
-        DefaultCategoryDataset dataset = new DefaultCategoryDataset( );
-        for(int i=0; i<valeurs.size();i++){
-            dataset.addValue(new Double(valeurs.get(i)), "intensité", new Integer(i));
+        final XYSeriesCollection dataset = new XYSeriesCollection();
+        for(int k=0;k<valeurs.size();k++) {
+            ResultatRecherche r = valeurs.get(k);
+            final XYSeries sery = new XYSeries(r.getDate()+" - "+k);
+            if(kindOfData==KindOfData.ACTIVECURRENT) {
+                String[] tab_string = r.getActif_graphe().keySet().toArray(new String[r.getActif_graphe().size()]);
+                for(int i=0;i<tab_string.length;i++) {
+                    sery.add(i,r.getActif_graphe().get(tab_string[i]));
+                }
+            }
+            else if(kindOfData==KindOfData.CURRENTMAGNITUDE){
+                String[] tab_string = r.getAmplitude_graphe().keySet().toArray(new String[r.getAmplitude_graphe().size()]);
+                for(int i=0;i<tab_string.length;i++) {
+                    sery.add(i,r.getAmplitude_graphe().get(tab_string[i]));
+                }
+            }
+            dataset.addSeries(sery);
         }
+
         return dataset;
     }
 }
