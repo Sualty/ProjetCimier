@@ -2,13 +2,17 @@ package controleur;
 
 import modele.ResultatRecherche;
 import modele.configuration.Configuration;
+import org.apache.commons.io.FileUtils;
 
+import java.io.File;
+import java.io.IOException;
 import java.sql.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 /**
  * Created by blou on 10/08/16.
@@ -21,7 +25,7 @@ public class HistoriqueControleur {
     private String password;
 
     public HistoriqueControleur() {
-        this.url = "jdbc:mysql://"+ Configuration.ipUnidrive+":"+Configuration.portDatabase+"/cimier?useSSL=false";
+        this.url = "jdbc:mysql://"+ Configuration.ipCimier+":"+Configuration.portDatabase+"/cimier?useSSL=false";
         this.username = Configuration.user_bd;
         this.password = Configuration.password_bd;
 
@@ -87,10 +91,10 @@ public class HistoriqueControleur {
             for(int i=0;i<ids.size();i++) {
 
                 int[] tab = ids.get(i);
-                HashMap<String,Double> active_record=getRecord(tab[0]);
-                HashMap<String,Double> amplitude_record = getRecord(tab[1]);
-
-                ResultatRecherche resultat= new ResultatRecherche(d,active_record,amplitude_record);
+                LinkedHashMap<String,Double> active_record=getRecord(tab[0]);
+                LinkedHashMap<String,Double> amplitude_record = getRecord(tab[1]);
+                String hour = getHourFromId(tab[0]);
+                ResultatRecherche resultat= new ResultatRecherche(d+"-"+hour,active_record,amplitude_record);
                 result.add(resultat);
             }
         }
@@ -98,19 +102,13 @@ public class HistoriqueControleur {
         return result;
     }
 
-    /**
-     * Retourne les valeurs d'un enregistrement donné
-     * @param id
-     * @return
-     */
-    public HashMap<String,Double> getRecord(int id) {
 
-        HashMap<String,Double> result = new HashMap<>();
-
+    public String getHourFromId(int id) {
+        String result="";
         try {
-            String updateString = "SELECT * " +
-                    "FROM datas " +
-                    "WHERE datas.id=? ";
+            String updateString = "SELECT records.begin_hour " +
+                    "FROM records " +
+                    "WHERE records.id=? ";
             PreparedStatement preparedStatement = con.prepareStatement(updateString);
 
             preparedStatement.setInt(1,id);
@@ -119,18 +117,48 @@ public class HistoriqueControleur {
 
             while (rs.next())
             {
-                Date d = rs.getDate("hour");
-                double value = rs.getDouble("val");
-
-                //System.out.println(key+" "+value);
-                result.put(d.toString(),value);
+                String string = rs.getString("begin_hour");
+                return string;
             }
         }
         catch (SQLException e) {
             e.printStackTrace();
         }
+        return null;
+    }
+
+    public LinkedHashMap<String,Double> getRecord(int id) {
+
+        LinkedHashMap<String,Double> result = new LinkedHashMap<>();
+
+        try {
+            String updateString = "SELECT * " +
+                    "FROM datas " +
+                    "WHERE datas.id=? "+
+                    "ORDER BY datas.hour ASC";
+            PreparedStatement preparedStatement = con.prepareStatement(updateString);
+
+            preparedStatement.setInt(1,id);
+
+            ResultSet rs = preparedStatement.executeQuery();
+
+            while (rs.next())
+            {
+                String d = rs.getString("hour");
+                double value = rs.getDouble("val");
+
+                result.put(d,value);
+
+            }
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+
         return result;
     }
+
 
     /**
      * Retourne des paires d'id qui coorespondent aux ids des enregistrements de courant actif/amplitude .
@@ -152,8 +180,7 @@ public class HistoriqueControleur {
 
             String updateString = "SELECT records.id " +
                     "FROM records " +
-                    "WHERE records.day_of_year=? " +
-                    "ORDER BY records.id ASC";
+                    "WHERE records.day_of_year=? ";
             PreparedStatement preparedStatement = con.prepareStatement(updateString);
 
             preparedStatement.setDate(1,dateDB);
@@ -239,7 +266,96 @@ public class HistoriqueControleur {
     }
 
     public void supprimer(ArrayList<String> list) {
-        //TODO
+        for(String s : list) {
+            String[] result = s.split("-",2);//0 date , 1 heure
+            java.sql.Date dateDB= new java.sql.Date(0);
+            try {
+                SimpleDateFormat format_of_date = new SimpleDateFormat("dd/MM/yyyy");
+                Date d = (Date) format_of_date.parse(result[0]);
+
+                format_of_date.applyPattern("dd-MM-yyyy");
+                String str = format_of_date.format(d);
+
+                java.util.Date dateStr = format_of_date.parse(str);
+                dateDB = new java.sql.Date(dateStr.getTime());
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            //get id of records
+            int[] id = getIdOfRecordFromDateHour(dateDB,result[1]);
+
+            suppressionRecord(dateDB,result[1]);
+            suppressionDatas(id);
+
+        }
+    }
+
+    private void suppressionRecord(java.sql.Date day_of_year, String begin_hour) {
+        System.out.println(day_of_year.toString());
+        System.out.println(begin_hour);
+        try {
+            String updateString = "DELETE FROM records " +
+                    "WHERE records.day_of_year=? AND records.begin_hour=?";
+            PreparedStatement preparedStatement = con.prepareStatement(updateString);
+
+            preparedStatement.setDate(1,day_of_year);
+            preparedStatement.setString(2,begin_hour);
+
+            preparedStatement.executeUpdate();
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void suppressionDatas(int[] id) {
+        System.out.println(id+"");
+        try {
+            String updateString = "DELETE FROM datas " +
+                    "WHERE datas.id=? OR datas.id=?";
+            PreparedStatement preparedStatement = con.prepareStatement(updateString);
+
+            preparedStatement.setInt(1,id[0]);
+            preparedStatement.setInt(2,id[1]);
+
+            preparedStatement.executeUpdate();
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private int[] getIdOfRecordFromDateHour(java.sql.Date day_of_year, String begin_hour) {
+        System.out.println(day_of_year.toString());
+        System.out.println(begin_hour);
+        int[] result = new int[2];//forcément 2 car il y a deux id correspondant : un pour actif un pour amplitude
+        try {
+            String updateString = "SELECT records.id " +
+                    "FROM records " +
+                    "WHERE records.day_of_year=? AND records.begin_hour=?";
+            PreparedStatement preparedStatement = con.prepareStatement(updateString);
+
+            preparedStatement.setDate(1,day_of_year);
+            preparedStatement.setString(2,begin_hour);
+
+            ResultSet rs = preparedStatement.executeQuery();
+
+            while (rs.next())
+            {
+                int id1 = rs.getInt("id");
+                result[0]=id1;
+                rs.next();
+                int id2 = rs.getInt("id");
+                result[1] = id2;
+                System.out.println(id1+" "+id2);
+                return result;
+
+            }
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public String createLog(ArrayList<ResultatRecherche> r) {
@@ -266,5 +382,13 @@ public class HistoriqueControleur {
             result.add(hash.get(keys[i]));
         }
         return result;
+    }
+
+    public void enregistrerLog(String log,String kind) {
+        try {
+            FileUtils.writeStringToFile(new File("log."+kind), log);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -90,16 +90,8 @@ public class HistoriqueTab extends JPanel{
 
         param_panels.add(button_launch_research);
 
-        String	listData[] =
-                {
-                        "Item 1",
-                        "Item 2",
-                        "Item 3",
-                        "Item 4"
-                };
-
-        JList list_results = new JList(listData);
-
+        JList list_results = new JList();
+        list_results.setModel(new DefaultListModel());
         JScrollPane scroll_list = new JScrollPane();
         scroll_list.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         scroll_list.setSize(300,300);
@@ -116,7 +108,9 @@ public class HistoriqueTab extends JPanel{
                 }
                 String[] dates_tab_list = new String[list_results_string.size()];
                 dates_tab_list = list_results_string.toArray(dates_tab_list);
-                list_results.setListData(dates_tab_list);
+               for(int i=0;i<dates_tab_list.length;i++) {
+                   ((DefaultListModel)list_results.getModel()).addElement(dates_tab_list[i]);
+               }
             }
         });
         JButton export_button = new JButton("Exporter");
@@ -186,20 +180,20 @@ public class HistoriqueTab extends JPanel{
                 String s = new String(password.getPassword());
 
                 if(s.equals(modele.configuration.Configuration.mdp_admin)) {
-                    historiqueControleur.supprimer(list_selected);//TODO
+                    historiqueControleur.supprimer(list_selected);
+                    int[] index_selected = list_results.getSelectedIndices();
+                    int count=0;
+                    for(int i : index_selected) {
+                        DefaultListModel listModel = (DefaultListModel) list_results.getModel();
+                        listModel.removeElementAt(i-count);
+                        count++;
+                    }
                 }
 
-                list_results.clearSelection();
             }
         });
 
-        export_button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                EnregistrementTab enregistrementTab = new EnregistrementTab();
-                JOptionPane.showConfirmDialog(param_panels, enregistrementTab, "Enregistrement", JOptionPane.OK_CANCEL_OPTION);
-            }
-        });
+
         //graphs panel
         JPanel graphs_panels = new JPanel();
         graphs_panels.setLayout(new BorderLayout());
@@ -350,6 +344,42 @@ public class HistoriqueTab extends JPanel{
                     String sql = sql_area.getText();
                     String result = historiqueControleur.rechercheSQL(sql);
                     log_file.setText(result);
+                }
+            }
+        });
+
+        export_button.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                EnregistrementTab enregistrementTab = new EnregistrementTab();
+                int input = JOptionPane.showConfirmDialog(param_panels, enregistrementTab, "Enregistrement", JOptionPane.OK_CANCEL_OPTION,JOptionPane.PLAIN_MESSAGE);
+                if(input == JOptionPane.OK_OPTION)
+                {
+                    boolean[] result = enregistrementTab.recapitultifEnregistrement();
+                    if(result[0]==true) {
+                        if(result[3]==true) {
+                            actif_graphe.enregistrerGraphe("png");
+                        }
+                        else if(result[4]==true) {
+                            actif_graphe.enregistrerGraphe("jpeg");
+                        }
+                    }
+                    if(result[1]==true) {
+                        if(result[3]==true) {
+                            amplitude_graphe.enregistrerGraphe("png");
+                        }
+                        else if(result[4]==true) {
+                            amplitude_graphe.enregistrerGraphe("jpeg");
+                        }
+                    }
+                    if(result[2]==true) {
+                        if(result[5]==true) {
+                            historiqueControleur.enregistrerLog(log_file.getText(),"txt");
+                        }
+                        else if(result[6]==true) {
+                            historiqueControleur.enregistrerLog(log_file.getText(),"csv");
+                        }
+                    }
                 }
             }
         });

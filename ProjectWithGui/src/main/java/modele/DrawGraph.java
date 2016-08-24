@@ -9,7 +9,10 @@ import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
+import java.awt.image.BufferedImage;
+import java.io.*;
 import java.util.ArrayList;
 
 /**
@@ -85,5 +88,28 @@ public class DrawGraph extends JPanel {
         }
 
         return dataset;
+    }
+
+    public void enregistrerGraphe(String kind) {
+        BufferedImage objBufferedImage=this.lineChart.createBufferedImage(600,800);
+        ByteArrayOutputStream bas = new ByteArrayOutputStream();
+        try {
+            ImageIO.write(objBufferedImage, kind, bas);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        byte[] byteArray=bas.toByteArray();
+
+        InputStream in = new ByteArrayInputStream(byteArray);
+        BufferedImage image = null;
+        try {
+            image = ImageIO.read(in);
+            String title = this.lineChart.getTitle().getText();
+            File outputfile = new File(title+"."+kind);
+            ImageIO.write(image, kind, outputfile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

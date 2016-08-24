@@ -95,11 +95,9 @@ public class GetDataFromUnidrive extends Thread{
                         }
                     }, "Shutdown-thread"));
 
-                    Date date = new Date();
-
                     //setting database;adding records
                     SimpleDateFormat formatter_date = new SimpleDateFormat("dd-MM-yyyy"); // your template here
-                    SimpleDateFormat formatter_hour = new SimpleDateFormat("HH-mm-ss");
+                    SimpleDateFormat formatter_hour = new SimpleDateFormat("HH:mm:ss");
 
                     ConnectDatabase db = new ConnectDatabase();
 
@@ -126,6 +124,7 @@ public class GetDataFromUnidrive extends Thread{
 
 
                         //adding records to Database
+                        Date date = new Date();
                         db.addRecords(formatter_date.format(date), formatter_hour.format(date), KindOfData.ACTIVECURRENT);
                         db.addRecords(formatter_date.format(date), formatter_hour.format(date), KindOfData.CURRENTMAGNITUDE);
 

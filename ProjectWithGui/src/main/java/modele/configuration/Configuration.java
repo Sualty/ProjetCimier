@@ -3,8 +3,8 @@ package modele.configuration;
 public class Configuration {
     //IP address of Unidrive
     //public static String ipUnidrive = "192.168.154.22";
-    //public static String ipUnidrive = "192.168.130.182";
-    public static String ipUnidrive = "127.0.0.1";
+    public static String ipUnidrive = "192.168.130.182";
+    public static String ipCimier = "127.0.0.1";
     //Login for Unidrive
     public static String login = "guidage";
 

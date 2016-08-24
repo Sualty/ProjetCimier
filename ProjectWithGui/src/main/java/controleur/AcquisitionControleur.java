@@ -1,9 +1,13 @@
 
 package controleur;
 
+import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.html.*;
+import modele.configuration.Configuration;
 import vueV2.AcquisitionTab;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -25,7 +29,7 @@ public class AcquisitionControleur {
      */
     public String lancerAcquisition(int nb_mesures, AcquisitionTab vue) throws IOException {
         vue.startGraphs();
-  /*      this.isActive = true;
+        this.isActive = true;
         vue.startGraphs();
         this.currentMagnitudeValues = new ArrayList<>();
         this.currentValues = new ArrayList<>();
@@ -127,8 +131,8 @@ public class AcquisitionControleur {
         for(int i=0;i<this.currentMagnitudeValues.size();i++) {
             result_string = result_string+"Courant actif : "+this.currentValues.get(i)+ "Amplitude du courant : "+this.currentMagnitudeValues.get(i)+"\n";
         }
-        return result_string;*/
-  return "log has been updated";
+        return result_string;
+  //return "log has been updated";
     }
 
 
